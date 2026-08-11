@@ -2,7 +2,9 @@ let grid = null;
 let saveLayoutTimer = null;
 
 export async function initGrid(onWidgetAdd, onWidgetRemove) {
-  await loadGridstackFromCDN();
+  if (!window.GridStack) {
+    throw new Error('GridStack not loaded');
+  }
 
   const gridEl = document.getElementById('grid');
   if (!gridEl) {
@@ -35,26 +37,6 @@ export async function initGrid(onWidgetAdd, onWidgetRemove) {
 
 export function getGrid() {
   return grid;
-}
-
-async function loadGridstackFromCDN() {
-  return new Promise((resolve, reject) => {
-    if (window.GridStack) {
-      resolve();
-      return;
-    }
-
-    const cssLink = document.createElement('link');
-    cssLink.rel = 'stylesheet';
-    cssLink.href = 'https://cdn.jsdelivr.net/npm/gridstack@10.0.0/dist/gridstack.min.css';
-    document.head.appendChild(cssLink);
-
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/gridstack@10.0.0/dist/gridstack.min.js';
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
 }
 
 async function loadPersistedLayout() {

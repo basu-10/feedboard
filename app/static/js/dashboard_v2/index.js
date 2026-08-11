@@ -6,16 +6,28 @@ import { loadAllWidgetSettings } from '../db.js';
 import { createWidget } from './widgetRegistry.js';
 
 async function init() {
-  initWidgetSettingsModal(openGlobalSettingsModal);
-  initGlobalSettingsModal();
-  initWidgetPicker(handleWidgetSettings);
+  try {
+    initWidgetSettingsModal(openGlobalSettingsModal);
+    initGlobalSettingsModal();
+    initWidgetPicker(handleWidgetSettings);
 
-  const grid = await initGrid(handleWidgetAdd, handleWidgetRemove);
+    const grid = await initGrid(handleWidgetAdd, handleWidgetRemove);
 
-  await loadPersistedWidgets(grid);
+    const addBtn = document.getElementById('addWidgetBtn');
+    const settingsBtn = document.getElementById('globalSettingsBtn');
+    console.log('Buttons found:', { addBtn: !!addBtn, settingsBtn: !!settingsBtn });
+    
+    if (addBtn) addBtn.addEventListener('click', openWidgetPicker);
+    if (settingsBtn) settingsBtn.addEventListener('click', openGlobalSettingsModal);
+
+    await loadPersistedWidgets(grid);
+    console.log('Dashboard v2 initialized successfully');
+  } catch (err) {
+    console.error('Dashboard v2 init failed:', err);
+  }
 }
 
-function handleWidgetSettings(widget, type = 'widget') {
+async function handleWidgetSettings(widget, type = 'widget') {
   if (type === 'global') {
     openGlobalSettingsModal();
   } else if (widget) {
