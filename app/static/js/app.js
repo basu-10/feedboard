@@ -274,7 +274,7 @@ document.addEventListener('keydown', (e) => {
   if (modalOverlay.classList.contains('active')) return;
   if (e.key === 'ArrowRight') nextArticle();
   if (e.key === 'ArrowLeft') prevArticle();
-  if (e.key === ' ') { e.preventDefault(); togglePause();
+  if (e.key === ' ') { e.preventDefault(); togglePause(); }
 });
 
 // ---- Settings Persistence ----
