@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Life Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span class="live-dot"></span> News
+    </div>
+    <button class="btn" id="openSettingsBtn">⚙️ Settings</button>
+  </header>
+
+  <main>
+    <div class="article-card" id="articleCard">
+      <div class="image-container" id="imageContainer">
+        <img id="articleImg" src="" alt="Article image">
+      </div>
+      <div class="content-container">
+        <div class="meta">
+          <span class="tag" id="articleSource">Source</span>
+          <span class="pub-date" id="articleDate">Date</span>
+        </div>
+        <h1 class="headline" id="articleTitle">Loading feed content...</h1>
+        <p class="snippet" id="articleSnippet"></p>
+        <a href="#" target="_blank" class="read-more" id="articleLink">
+          Read original article ↗
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="counter" id="articleCounter">0 / 0</div>
+    <div class="nav-controls">
+      <button class="btn" id="prevBtn">◀ Prev</button>
+      <button class="btn" id="pauseBtn">⏸ Pause</button>
+      <button class="btn" id="nextBtn">Next ▶</button>
+    </div>
+  </footer>
+
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2>Display Settings</h2>
+
+      <div class="tabs" id="settingsTabs">
+        <button class="tab-btn active" data-tab="general">General</button>
+        <button class="tab-btn" data-tab="data">Import / Export</button>
+      </div>
+
+      <!-- General Tab -->
+      <div class="tab-panel active" data-panel="general">
+        <div class="form-group">
+          <label>Built-in News Topics</label>
+          <div class="topic-list" id="topicList">
+            <label class="topic-item">
+              <input type="checkbox" name="topic" value="WORLD">
+              <span>World News</span>
+            </label>
+            <label class="topic-item">
+              <input type="checkbox" name="topic" value="TECHNOLOGY">
+              <span>Technology</span>
+            </label>
+            <label class="topic-item">
+              <input type="checkbox" name="topic" value="BUSINESS">
+              <span>Business</span>
+            </label>
+            <label class="topic-item">
+              <input type="checkbox" name="topic" value="SCIENCE">
+              <span>Science</span>
+            </label>
+            <label class="topic-item">
+              <input type="checkbox" name="topic" value="SPORTS">
+              <span>Sports</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Custom RSS Feeds</label>
+          <div class="custom-feed-list" id="customFeedList"></div>
+          <button class="btn add-feed-btn" id="addFeedBtn" type="button">+ Add Custom Feed</button>
+        </div>
+
+        <div class="form-group">
+          <label for="slideIntervalInput">Article Rotation Speed (seconds)</label>
+          <input type="number" id="slideIntervalInput" min="3" max="60" value="8">
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" id="closeSettingsBtn">Cancel</button>
+          <button class="btn" id="saveSettingsBtn" style="background: var(--accent); color: #0f172a;">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Import / Export Tab -->
+      <div class="tab-panel" data-panel="data">
+        <p class="tab-hint">Export your settings to migrate them to another machine, or import a previously saved file.</p>
+        <div class="modal-actions">
+          <button class="btn" id="exportSettingsBtn" style="background: var(--accent); color: #0f172a;">⬇ Download Settings</button>
+          <button class="btn" id="importSettingsBtn">⬆ Import Settings</button>
+          <input type="file" id="importFileInput" accept="application/json" hidden>
+        </div>
+        <p class="import-status" id="importStatus"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
