@@ -412,7 +412,6 @@ function startWeather() {
 }
 
 async function applyLocationSettings() {
-  statusBar.classList.add('visible');
   startClock();
 
   if (locationQuery && locationQuery.trim()) {
