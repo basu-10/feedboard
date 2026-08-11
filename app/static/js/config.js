@@ -2,6 +2,15 @@
 export const FETCH_INTERVAL_MS = 5 * 60 * 1000; // Background refresh every 5 minutes
 export const RSS2JSON_ENDPOINT = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
+export function buildRss2JsonUrl(feedUrl) {
+  const apiKey = typeof window !== 'undefined' ? window.RSS2JSON_API_KEY : '';
+  const url = `${RSS2JSON_ENDPOINT}${encodeURIComponent(feedUrl)}`;
+  if (apiKey) {
+    return `${url}&api_key=${apiKey}`;
+  }
+  return url;
+}
+
 export const GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 export const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 

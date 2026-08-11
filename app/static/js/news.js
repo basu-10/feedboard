@@ -1,5 +1,6 @@
 // Feed fetching, round-robin queue, article rendering
-import { RSS2JSON_ENDPOINT, TOPIC_FEEDS, TOPIC_LABELS } from './config.js';
+import { buildRss2JsonUrl } from './config.js';
+import { TOPIC_FEEDS, TOPIC_LABELS } from './config.js';
 import { state } from './store.js';
 
 // DOM Elements
@@ -51,12 +52,9 @@ export function shuffle(arr) {
 }
 
 // Fetch a single feed and return its items tagged with the source topic
-async function fetchFeed(feed) {
-  const cacheBust = `_=${Date.now()}`;
-  const response = await fetch(
-    `${RSS2JSON_ENDPOINT}${encodeURIComponent(feed.url)}&${cacheBust}`,
-    { cache: 'no-store' }
-  );
+export async function fetchFeed(feed) {
+  const url = buildRss2JsonUrl(feed.url);
+  const response = await fetch(`${url}&_=${Date.now()}`, { cache: 'no-store' });
   const data = await response.json();
   if (data.status === 'ok' && data.items.length > 0) {
     return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));

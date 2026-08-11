@@ -187,6 +187,9 @@
     </div>
   </div>
 
+  {% if rss2json_api_key %}
+  <script>window.RSS2JSON_API_KEY = {{ rss2json_api_key | tojson }};</script>
+  {% endif %}
   <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
