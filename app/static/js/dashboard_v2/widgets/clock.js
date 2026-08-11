@@ -19,6 +19,7 @@ export class ClockWidget extends BaseWidget {
   }
 
   async onRender() {
+    console.log('[ClockWidget] onRender called');
     this.updateClock();
     this.timer = setInterval(() => this.updateClock(), 1000);
     this.timers.push(this.timer);

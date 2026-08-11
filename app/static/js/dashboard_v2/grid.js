@@ -2,12 +2,16 @@ let grid = null;
 let saveLayoutTimer = null;
 
 export async function initGrid(onWidgetAdd, onWidgetRemove) {
+  console.log('[grid] initGrid called');
   if (!window.GridStack) {
+    console.error('[grid] GridStack not loaded!');
     throw new Error('GridStack not loaded');
   }
 
   const gridEl = document.getElementById('grid');
+  console.log('[grid] grid element:', gridEl);
   if (!gridEl) {
+    console.error('[grid] Grid element not found!');
     throw new Error('Grid element not found');
   }
 
@@ -22,16 +26,20 @@ export async function initGrid(onWidgetAdd, onWidgetRemove) {
     removable: true,
     removeTimeout: 100,
   }, gridEl);
+  console.log('[grid] GridStack initialized:', grid);
 
   grid.on('change', debouncedSaveLayout);
   grid.on('added', (event, items) => {
+    console.log('[grid] "added" event fired, items:', items);
     if (onWidgetAdd) onWidgetAdd(items);
   });
   grid.on('removed', (event, items) => {
+    console.log('[grid] "removed" event fired, items:', items);
     if (onWidgetRemove) onWidgetRemove(items);
   });
 
   await loadPersistedLayout();
+  console.log('[grid] Layout loaded, returning grid');
   return grid;
 }
 

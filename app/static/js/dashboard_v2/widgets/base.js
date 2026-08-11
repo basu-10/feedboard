@@ -30,12 +30,20 @@ export class BaseWidget {
   }
 
   async render() {
-    if (!this.element) return;
+    console.log('[BaseWidget] render called, element:', this.element);
+    if (!this.element) {
+      console.warn('[BaseWidget] No element, skipping render');
+      return;
+    }
 
     this.element.innerHTML = this.getHTML();
+    console.log('[BaseWidget] HTML set, binding elements...');
     this.bindElements();
+    console.log('[BaseWidget] Elements bound, binding events...');
     this.bindEvents();
+    console.log('[BaseWidget] Events bound, calling onRender...');
     await this.onRender();
+    console.log('[BaseWidget] onRender completed');
   }
 
   getHTML() {

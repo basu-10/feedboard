@@ -35,25 +35,38 @@ async function handleWidgetSettings(widget, type = 'widget') {
 }
 
 async function handleWidgetAdd(items) {
+  console.log('[index] handleWidgetAdd called with items:', items);
   for (const item of items) {
     const widgetEl = item.el;
     const widgetId = widgetEl.dataset.widgetId;
     const widgetType = widgetEl.dataset.widgetType;
 
-    if (!widgetId || !widgetType) continue;
+    console.log('[index] Processing widget:', { widgetId, widgetType });
+
+    if (!widgetId || !widgetType) {
+      console.warn('[index] Missing widgetId or widgetType, skipping');
+      continue;
+    }
 
     const { loadWidgetSettings } = await import('../db.js');
     const settings = await loadWidgetSettings(widgetId);
+    console.log('[index] Loaded settings:', settings);
 
     if (settings) {
       const widget = await createWidget(widgetType, widgetId, grid, settings, handleWidgetSettings);
+      console.log('[index] Created widget instance:', widget);
       widget.element = widgetEl;
+      console.log('[index] Set widget.element, calling render...');
       await widget.render();
+      console.log('[index] Widget rendered');
+    } else {
+      console.warn('[index] No settings found for widget:', widgetId);
     }
   }
 }
 
 function handleWidgetRemove(items) {
+  console.log('[index] handleWidgetRemove called with items:', items);
   for (const item of items) {
     const widgetEl = item.el;
     const widgetId = widgetEl.dataset.widgetId;
