@@ -42,6 +42,9 @@ async function handleWidgetAdd(items) {
     const widgetType = widgetEl.dataset.widgetType;
 
     console.log('[index] Processing widget:', { widgetId, widgetType });
+    console.log('[index] widgetEl in DOM:', document.body.contains(widgetEl));
+    console.log('[index] widgetEl parent:', widgetEl.parentElement);
+    console.log('[index] widgetEl computed styles:', window.getComputedStyle(widgetEl));
 
     if (!widgetId || !widgetType) {
       console.warn('[index] Missing widgetId or widgetType, skipping');
@@ -58,7 +61,12 @@ async function handleWidgetAdd(items) {
       widget.element = widgetEl;
       console.log('[index] Set widget.element, calling render...');
       await widget.render();
-      console.log('[index] Widget rendered');
+      console.log('[index] Widget rendered, updating grid...');
+      
+      setTimeout(() => {
+        grid.update();
+        console.log('[index] Grid updated');
+      }, 0);
     } else {
       console.warn('[index] No settings found for widget:', widgetId);
     }

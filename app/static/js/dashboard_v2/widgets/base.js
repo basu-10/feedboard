@@ -36,9 +36,17 @@ export class BaseWidget {
       return;
     }
 
-    console.log('[BaseWidget] element computed height:', window.getComputedStyle(this.element).height);
-    console.log('[BaseWidget] element offsetHeight:', this.element.offsetHeight);
-    
+    const elStyles = window.getComputedStyle(this.element);
+    console.log('[BaseWidget] element styles:', {
+      display: elStyles.display,
+      visibility: elStyles.visibility,
+      opacity: elStyles.opacity,
+      backgroundColor: elStyles.backgroundColor,
+      color: elStyles.color,
+      height: elStyles.height,
+      overflow: elStyles.overflow,
+    });
+
     this.element.innerHTML = this.getHTML();
     console.log('[BaseWidget] HTML set, binding elements...');
     this.bindElements();
@@ -47,8 +55,6 @@ export class BaseWidget {
     console.log('[BaseWidget] Events bound, calling onRender...');
     await this.onRender();
     console.log('[BaseWidget] onRender completed');
-    console.log('[BaseWidget] contentEl computed height:', this.contentEl ? window.getComputedStyle(this.contentEl).height : 'null');
-    console.log('[BaseWidget] contentEl offsetHeight:', this.contentEl ? this.contentEl.offsetHeight : 'null');
   }
 
   getHTML() {
@@ -74,6 +80,20 @@ export class BaseWidget {
     this.contentEl = this.element.querySelector('.widget-content');
     console.log('[BaseWidget] headerEl:', this.headerEl, 'contentEl:', this.contentEl);
     console.log('[BaseWidget] element innerHTML:', this.element.innerHTML);
+    
+    if (this.contentEl) {
+      const contentStyles = window.getComputedStyle(this.contentEl);
+      console.log('[BaseWidget] contentEl styles:', {
+        display: contentStyles.display,
+        flex: contentStyles.flex,
+        flexGrow: contentStyles.flexGrow,
+        height: contentStyles.height,
+        overflow: contentStyles.overflow,
+        padding: contentStyles.padding,
+        color: contentStyles.color,
+      });
+      console.log('[BaseWidget] contentEl children:', this.contentEl.children);
+    }
   }
 
   bindEvents() {

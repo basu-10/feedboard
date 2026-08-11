@@ -18,15 +18,28 @@ export class ClockWidget extends BaseWidget {
     };
   }
 
-  async onRender() {
+async onRender() {
     console.log('[ClockWidget] onRender called');
     this.updateClock();
     this.timer = setInterval(() => this.updateClock(), 1000);
     this.timers.push(this.timer);
   }
-
+  
   updateClock() {
-    if (!this.contentEl) return;
+    if (!this.contentEl) {
+      console.warn('[ClockWidget] No contentEl!');
+      return;
+    }
+
+    const contentStyles = window.getComputedStyle(this.contentEl);
+    console.log('[ClockWidget] contentEl styles:', {
+      display: contentStyles.display,
+      height: contentStyles.height,
+      overflow: contentStyles.overflow,
+      color: contentStyles.color,
+      padding: contentStyles.padding,
+    });
+    console.log('[ClockWidget] contentEl children before:', this.contentEl.children.length);
 
     const { timezone, format, showSeconds, showDate } = this.settings;
     const now = new Date();
@@ -60,7 +73,18 @@ export class ClockWidget extends BaseWidget {
     `;
     console.log('[ClockWidget] Setting innerHTML:', html);
     this.contentEl.innerHTML = html;
-    console.log('[ClockWidget] contentEl after:', this.contentEl.innerHTML);
+    console.log('[ClockWidget] contentEl children after:', this.contentEl.children.length);
+    
+    const timeEl = this.contentEl.querySelector('.clock-time');
+    if (timeEl) {
+      const timeStyles = window.getComputedStyle(timeEl);
+      console.log('[ClockWidget] clock-time styles:', {
+        fontSize: timeStyles.fontSize,
+        color: timeStyles.color,
+        display: timeStyles.display,
+        height: timeStyles.height,
+      });
+    }
   }
 
   async setSettings(newSettings) {
