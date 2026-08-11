@@ -1,5 +1,4 @@
 import { getWidgetRegistry, generateWidgetId } from './widgetRegistry.js';
-import { createWidget } from './widgetRegistry.js';
 import { getGrid } from './grid.js';
 import { saveWidgetSettings } from '../db.js';
 
@@ -83,8 +82,6 @@ async function addWidget(type) {
   el.dataset.widgetId = id;
   el.dataset.widgetType = type;
 
-  const widget = await createWidget(type, id, grid, defaultSettings, onWidgetCreate);
-
   grid.addWidget(el, {
     w: def.defaultSize.w,
     h: def.defaultSize.h,
@@ -92,8 +89,6 @@ async function addWidget(type) {
     minH: def.minSize.h,
     id: id,
   });
-
-  await widget.render();
 }
 
 function closeModal() {

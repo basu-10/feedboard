@@ -2,7 +2,6 @@ import { initGrid } from './grid.js';
 import { initWidgetSettingsModal } from './widgetSettings.js';
 import { initGlobalSettingsModal, openGlobalSettingsModal } from './globalSettings.js';
 import { initWidgetPicker, openWidgetPicker } from './widgetPicker.js';
-import { loadAllWidgetSettings } from '../db.js';
 import { createWidget } from './widgetRegistry.js';
 
 async function init() {
@@ -20,7 +19,6 @@ async function init() {
     if (addBtn) addBtn.addEventListener('click', openWidgetPicker);
     if (settingsBtn) settingsBtn.addEventListener('click', openGlobalSettingsModal);
 
-    await loadPersistedWidgets(grid);
     console.log('Dashboard v2 initialized successfully');
   } catch (err) {
     console.error('Dashboard v2 init failed:', err);
@@ -49,6 +47,7 @@ async function handleWidgetAdd(items) {
 
     if (settings) {
       const widget = await createWidget(widgetType, widgetId, grid, settings, handleWidgetSettings);
+      widget.element = widgetEl;
       await widget.render();
     }
   }
@@ -62,18 +61,6 @@ function handleWidgetRemove(items) {
     if (widgetId) {
       import('../db.js').then(({ deleteWidgetSettings }) => deleteWidgetSettings(widgetId));
     }
-  }
-}
-
-async function loadPersistedWidgets(grid) {
-  const widgetsData = await loadAllWidgetSettings();
-
-  for (const widgetData of widgetsData) {
-    const { id, type, ...settings } = widgetData;
-    if (!type) continue;
-
-    const widget = await createWidget(type, id, grid, settings, handleWidgetSettings);
-    await widget.render();
   }
 }
 
