@@ -1,5 +1,5 @@
 // Minimal IndexedDB wrapper for persisting user settings
-const DB_NAME = 'mydash';
+const DB_NAME = 'feedboard';
 const DB_VERSION = 1;
 const STORE_NAME = 'settings';
 const SETTINGS_KEY = 'app';

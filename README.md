@@ -18,7 +18,7 @@ A full-screen, auto-rotating news slideshow powered by RSS feeds. The frontend i
 ## Project structure
 
 ```
-mydash/
+feedboard/
 ├── app.py              # Entry point: launches the Flask app
 ├── requirements.txt    # Python dependencies
 ├── README.md

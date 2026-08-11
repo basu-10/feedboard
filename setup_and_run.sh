@@ -2,10 +2,10 @@
 set -e
 
 # Runtime layout (all next to this repo, never inside it):
-#   mydash/        -> this git repo (code only)
-#   mydash-venv/   -> virtual environment (created here)
+#   feedboard/      -> this git repo (code only)
+#   feedboard-venv/ -> virtual environment (created here)
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$(dirname "$REPO_DIR")/mydash-venv"
+VENV_DIR="$(dirname "$REPO_DIR")/feedboard-venv"
 REQUIREMENTS="$REPO_DIR/requirements.txt"
 APP_FILE="$REPO_DIR/app.py"
 
