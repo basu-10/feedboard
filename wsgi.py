@@ -1,29 +1,36 @@
 """
 WSGI entry point for FeedBoard on PythonAnywhere.
 
-Expected runtime layout (all siblings, NOT inside the repo's inner folders):
-    /feedboard/       -> git repo (project code, including this wsgi.py)
-    /feedboard-venv/  -> virtual environment
-    /feedboard-data/  -> logs / data / settings / database generated at runtime
+Expected runtime layout under your HOME directory:
+    ~/feedboard/       -> git repo (project code, including this wsgi.py)
+    ~/feedboard-venv/  -> virtual environment
+    ~/feedboard-data/  -> logs / data / settings / database generated at runtime
 
-On PythonAnywhere, point the WSGI file path to:
-    /feedboard/wsgi.py
+On PythonAnywhere, point the Web app's WSGI file to:
+    /home/<yourusername>/feedboard/wsgi.py
 and set the Virtualenv field to:
-    /feedboard-venv
+    /home/<yourusername>/feedboard-venv
+
+NOTE: Do NOT use the default /var/www/... wsgi file path, because paths
+derived from that location resolve under /var, which is not writable.
 """
 
 import os
 import sys
 
 # --- Paths ----------------------------------------------------------------
-# This file lives in the repo (/feedboard/wsgi.py).
-REPO_DIR = os.path.dirname(os.path.abspath(__file__))      # /feedboard
-BASE_DIR = os.path.dirname(REPO_DIR)                        # parent of /feedboard
-VENV_DIR = os.path.join(BASE_DIR, "feedboard-venv")         # /feedboard-venv
-DATA_DIR = os.path.join(BASE_DIR, "feedboard-data")         # /feedboard-data
+# Anchor everything to the user's home directory so it works regardless of
+# where the WSGI file actually lives (e.g. /var/www on PythonAnywhere).
+HOME = os.environ.get("HOME") or os.path.expanduser("~")
+REPO_DIR = os.path.join(HOME, "feedboard")           # ~/feedboard
+VENV_DIR = os.path.join(HOME, "feedboard-venv")      # ~/feedboard-venv
+DATA_DIR = os.path.join(HOME, "feedboard-data")      # ~/feedboard-data
 
-# Create the data directory if it does not exist yet.
-os.makedirs(DATA_DIR, exist_ok=True)
+# Create the data directory if possible (do not crash if not writable).
+try:
+    os.makedirs(DATA_DIR, exist_ok=True)
+except OSError:
+    pass
 
 # --- Python path ----------------------------------------------------------
 # Make the project code importable (so `from app import app` works).
@@ -31,7 +38,7 @@ if REPO_DIR not in sys.path:
     sys.path.insert(0, REPO_DIR)
 
 # --- Environment ----------------------------------------------------------
-# Keep generated artifacts out of the repo and inside /feedboard-data.
+# Keep generated artifacts out of the repo and inside ~/feedboard-data.
 os.environ.setdefault("FEEDBOARD_DATA_DIR", DATA_DIR)
 
 # --- Virtualenv (belt-and-suspenders; PythonAnywhere also uses the field) --
