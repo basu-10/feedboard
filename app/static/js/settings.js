@@ -3,7 +3,6 @@ import { state } from './store.js';
 import { loadSettings, saveSettings } from './db.js';
 import { fetchNews } from './news.js';
 import { restartSlideTimer } from './slideshow.js';
-import { startClock } from './clock.js';
 import { applyLocationSettings } from './weather.js';
 
 // Modal DOM Elements
@@ -186,7 +185,6 @@ function wireModal() {
     fetchNews();
     restartSlideTimer();
     applyLocationSettings();
-    startClock();
   });
 
   // ---- Import / Export ----
@@ -240,7 +238,6 @@ function wireModal() {
       applySettingsToUI(settings);
       importStatus.textContent = 'Settings imported successfully.';
       applyLocationSettings();
-      startClock();
       fetchNews();
       restartSlideTimer();
     } catch (err) {

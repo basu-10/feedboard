@@ -4,7 +4,6 @@ import { state } from './store.js';
 import { loadSettings } from './db.js';
 import { fetchNews } from './news.js';
 import { restartSlideTimer, nextArticle, prevArticle, togglePause } from './slideshow.js';
-import { startClock } from './clock.js';
 import { applyLocationSettings } from './weather.js';
 import { init as initSettings, DEFAULT_SETTINGS } from './settings.js';
 
@@ -37,7 +36,6 @@ async function init() {
     pill.classList.toggle('active', pill.dataset.category === state.activeCategory);
   });
 
-  startClock();
   fetchNews();
   restartSlideTimer();
   applyLocationSettings();
