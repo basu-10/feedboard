@@ -54,12 +54,20 @@ export function shuffle(arr) {
 // Fetch a single feed and return its items tagged with the source topic
 export async function fetchFeed(feed) {
   const url = buildRss2JsonUrl(feed.url);
-  const response = await fetch(`${url}&_=${Date.now()}`, { cache: 'no-store' });
-  const data = await response.json();
-  if (data.status === 'ok' && data.items.length > 0) {
-    return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
+  try {
+    const response = await fetch(`${url}&_=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    if (data.status === 'ok' && data.items.length > 0) {
+      return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
+    }
+    return [];
+  } catch (error) {
+    console.error(`[Feed fetch failed] ${feed.topic} :: ${feed.url}`, error);
+    throw error;
   }
-  return [];
 }
 
 // Interleave items from each feed round-robin (1 from each, then repeat)
@@ -138,7 +146,7 @@ export async function fetchNews({ isRefresh = false } = {}) {
       renderArticle();
     }
   } catch (error) {
-    console.error("Fetch Error:", error);
+    console.error('Fetch Error:', error);
     if (!isRefresh) titleEl.innerText = "Error fetching news data.";
   }
 }

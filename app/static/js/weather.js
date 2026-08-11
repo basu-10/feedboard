@@ -14,17 +14,25 @@ let weatherTimer = null;
 export async function geocodeLocation(query) {
   if (!query || !query.trim()) return null;
   const url = `${GEOCODE_URL}?name=${encodeURIComponent(query.trim())}&count=1&language=en&format=json`;
-  const res = await fetch(url, { cache: 'no-store' });
-  const data = await res.json();
-  if (data.results && data.results.length) {
-    const r = data.results[0];
-    return {
-      lat: r.latitude,
-      lon: r.longitude,
-      name: [r.name, r.admin1, r.country].filter(Boolean).join(', ')
-    };
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`Geocode HTTP ${res.status} ${res.statusText}`);
+    }
+    const data = await res.json();
+    if (data.results && data.results.length) {
+      const r = data.results[0];
+      return {
+        lat: r.latitude,
+        lon: r.longitude,
+        name: [r.name, r.admin1, r.country].filter(Boolean).join(', ')
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error('Geocoding failed', err);
+    return null;
   }
-  return null;
 }
 
 export async function fetchWeather() {
