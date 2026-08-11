@@ -22,6 +22,17 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 
 mkdir -p "$CONFIGS_DIR"
+ENV_FILE="$CONFIGS_DIR/.env"
+if [ ! -f "$ENV_FILE" ]; then
+  cat > "$ENV_FILE" <<'EOF'
+# rss2json API key (optional)
+# Get yours at https://rss2json.com
+# RSS2JSON_API_KEY=
+EOF
+  echo "Created placeholder env file at $ENV_FILE"
+else
+  echo "Env file already exists at $ENV_FILE"
+fi
 echo "Data directory ready at $DATA_DIR (configs at $CONFIGS_DIR)."
 
 echo "Starting Flask app..."
