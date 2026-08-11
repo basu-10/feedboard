@@ -1,0 +1,72 @@
+import { initGrid } from './grid.js';
+import { initWidgetSettingsModal } from './widgetSettings.js';
+import { initGlobalSettingsModal, openGlobalSettingsModal } from './globalSettings.js';
+import { initWidgetPicker, openWidgetPicker } from './widgetPicker.js';
+import { loadAllWidgetSettings } from '../db.js';
+import { createWidget } from './widgetRegistry.js';
+
+async function init() {
+  initWidgetSettingsModal(openGlobalSettingsModal);
+  initGlobalSettingsModal();
+  initWidgetPicker(handleWidgetSettings);
+
+  const grid = await initGrid(handleWidgetAdd, handleWidgetRemove);
+
+  await loadPersistedWidgets(grid);
+}
+
+function handleWidgetSettings(widget, type = 'widget') {
+  if (type === 'global') {
+    openGlobalSettingsModal();
+  } else if (widget) {
+    const { openWidgetSettings } = await import('./widgetSettings.js');
+    openWidgetSettings(widget);
+  }
+}
+
+async function handleWidgetAdd(items) {
+  for (const item of items) {
+    const widgetEl = item.el;
+    const widgetId = widgetEl.dataset.widgetId;
+    const widgetType = widgetEl.dataset.widgetType;
+
+    if (!widgetId || !widgetType) continue;
+
+    const { loadWidgetSettings } = await import('../db.js');
+    const settings = await loadWidgetSettings(widgetId);
+
+    if (settings) {
+      const widget = await createWidget(widgetType, widgetId, grid, settings, handleWidgetSettings);
+      await widget.render();
+    }
+  }
+}
+
+function handleWidgetRemove(items) {
+  for (const item of items) {
+    const widgetEl = item.el;
+    const widgetId = widgetEl.dataset.widgetId;
+
+    if (widgetId) {
+      import('../db.js').then(({ deleteWidgetSettings }) => deleteWidgetSettings(widgetId));
+    }
+  }
+}
+
+async function loadPersistedWidgets(grid) {
+  const widgetsData = await loadAllWidgetSettings();
+
+  for (const widgetData of widgetsData) {
+    const { id, type, ...settings } = widgetData;
+    if (!type) continue;
+
+    const widget = await createWidget(type, id, grid, settings, handleWidgetSettings);
+    await widget.render();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+// Make openWidgetPicker globally accessible for toolbar
+window.openWidgetPicker = openWidgetPicker;
+window.openGlobalSettingsModal = openGlobalSettingsModal;

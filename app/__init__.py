@@ -44,5 +44,10 @@ def index():
     return render_template("dashboard.html", rss2json_api_key=RSS2JSON_API_KEY)
 
 
+@app.route("/dashboard/v2")
+def dashboard_v2():
+    return render_template("dashboard_v2.html", rss2json_api_key=RSS2JSON_API_KEY)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedboard — Dashboard V2</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_v2.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.0.0/dist/gridstack.min.css">
+</head>
+<body>
+  <header class="v2-toolbar">
+    <div class="toolbar-left">
+      <span class="live-dot"></span>
+      <h1>Dashboard V2</h1>
+    </div>
+    <div class="toolbar-center"></div>
+    <div class="toolbar-right">
+      <button class="btn" id="addWidgetBtn" aria-label="Add Widget" title="Add Widget">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Widget
+      </button>
+      <button class="btn" id="globalSettingsBtn" aria-label="Settings" title="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l-.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+      <a href="/" class="btn" aria-label="Back to Landing" title="Back to Landing">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="v2-main">
+    <div class="grid-stack" id="grid"></div>
+  </main>
+
+  <!-- Widget Settings Modal -->
+  <div class="modal-overlay" id="widgetSettingsModal">
+    <div class="modal">
+      <h2 class="modal-title">Widget Settings</h2>
+      <form class="settings-form"></form>
+      <div class="modal-actions">
+        <button type="button" class="btn close-settings-btn" aria-label="Cancel">Cancel</button>
+        <button type="button" class="btn delete-widget-btn" style="background: var(--accent); color: #fff; margin-right: auto;" aria-label="Delete Widget">Delete Widget</button>
+        <button type="button" class="btn save-settings-btn" style="background: var(--accent); color: #fff;" aria-label="Save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget Picker Modal -->
+  <div class="modal-overlay" id="widgetPickerModal">
+    <div class="modal" style="max-width: 600px;">
+      <h2>Add Widget</h2>
+      <div class="widget-picker-grid"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn close-settings-btn" aria-label="Cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Settings Modal -->
+  <div class="modal-overlay" id="globalSettingsModal">
+    <div class="modal">
+      <h2>Global Settings</h2>
+      <div class="form-group">
+        <label for="finnhubApiKey">Finnhub API Key</label>
+        <input type="text" id="finnhubApiKey" placeholder="Enter your Finnhub API key" autocomplete="off">
+        <p class="field-help">Required for Stock Prices widget. Get a free key at <a href="https://finnhub.io" target="_blank">finnhub.io</a></p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn close-settings-btn" aria-label="Cancel">Cancel</button>
+        <button type="button" class="btn save-settings-btn" style="background: var(--accent); color: #fff;" aria-label="Save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gridstack@10.0.0/dist/gridstack.min.js"></script>
+  {% if rss2json_api_key %}
+  <script>window.RSS2JSON_API_KEY = {{ rss2json_api_key | tojson }};</script>
+  {% endif %}
+  <script type="module" src="{{ url_for('static', filename='js/dashboard_v2/index.js') }}"></script>
+</body>
+</html>
