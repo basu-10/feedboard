@@ -3,9 +3,9 @@ let articles = [];
 let currentIndex = 0;
 let isPaused = false;
 let slideIntervalMs = 8000;
+let activeCategory = 'WORLD';
 
 // Persisted settings
-let selectedTopics = ['WORLD'];
 let customFeeds = []; // [{ id, url }]
 
 // Location & Time settings
@@ -74,7 +74,6 @@ const modalOverlay = document.getElementById('modalOverlay');
 const openSettingsBtn = document.getElementById('openSettingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-const topicList = document.getElementById('topicList');
 const customFeedList = document.getElementById('customFeedList');
 const addFeedBtn = document.getElementById('addFeedBtn');
 const slideIntervalInput = document.getElementById('slideIntervalInput');
@@ -107,8 +106,8 @@ const TOPIC_LABELS = {
 // Build the list of active feeds (built-in + custom) for fetching
 function getActiveFeeds() {
   const feeds = [];
-  for (const topic of selectedTopics) {
-    if (TOPIC_FEEDS[topic]) feeds.push({ topic, url: TOPIC_FEEDS[topic] });
+  if (activeCategory && TOPIC_FEEDS[activeCategory]) {
+    feeds.push({ topic: activeCategory, url: TOPIC_FEEDS[activeCategory] });
   }
   for (const feed of customFeeds) {
     if (feed.url) feeds.push({ topic: `CUSTOM:${feed.id}`, url: feed.url });
@@ -162,7 +161,7 @@ function buildRoundRobinQueue(feedsItems) {
 async function fetchNews() {
   const feeds = getActiveFeeds();
   if (!feeds.length) {
-    titleEl.innerText = "No feeds selected. Open Settings to add some.";
+    titleEl.innerText = "No feeds selected. Select a category or add a custom feed.";
     return;
   }
 
@@ -185,8 +184,6 @@ async function fetchNews() {
     titleEl.innerText = "Error fetching news data.";
   }
 }
-
-// Render Current Article Data
 function renderArticle() {
   if (!articles.length) return;
 
@@ -429,8 +426,6 @@ async function applyLocationSettings() {
 
 // ---- Settings Persistence ----
 function collectSettings() {
-  const checkedTopics = Array.from(topicList.querySelectorAll('input[name="topic"]:checked'))
-    .map(c => c.value);
   const feeds = Array.from(customFeedList.querySelectorAll('.custom-feed-item'))
     .map(row => {
       const id = row.dataset.id;
@@ -440,7 +435,7 @@ function collectSettings() {
     .filter(Boolean);
 
   return {
-    selectedTopics: checkedTopics,
+    selectedTopics: activeCategory ? [activeCategory] : [],
     customFeeds: feeds,
     slideIntervalSec: parseInt(slideIntervalInput.value, 10) || 8,
     timezone: timezoneSelect.value,
@@ -450,16 +445,19 @@ function collectSettings() {
 }
 
 function applySettingsToUI(settings) {
-  selectedTopics = settings.selectedTopics || [];
+  const topics = settings.selectedTopics || [];
+  activeCategory = topics.length > 0 ? topics[0] : '';
+
+  document.querySelectorAll('.category-pill').forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.category === activeCategory);
+  });
+
   customFeeds = settings.customFeeds || [];
   slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
   timezone = settings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   locationQuery = settings.locationQuery || '';
   weatherUnit = settings.weatherUnit || 'celsius';
 
-  topicList.querySelectorAll('input[name="topic"]').forEach(box => {
-    box.checked = selectedTopics.includes(box.value);
-  });
   renderCustomFeedRows();
   slideIntervalInput.value = settings.slideIntervalSec || 8;
 
@@ -541,7 +539,7 @@ function setupTabs() {
 // ---- Modal Dialog Controls ----
 openSettingsBtn.addEventListener('click', () => {
   if (!timezoneSelect.dataset.populated) populateTimezones();
-  applySettingsToUI({ selectedTopics, customFeeds, slideIntervalSec: slideIntervalMs / 1000, timezone, locationQuery, weatherUnit });
+  applySettingsToUI({ selectedTopics: activeCategory ? [activeCategory] : [], customFeeds, slideIntervalSec: slideIntervalMs / 1000, timezone, locationQuery, weatherUnit });
   modalOverlay.classList.add('active');
 });
 
@@ -556,11 +554,11 @@ addFeedBtn.addEventListener('click', () => {
 saveSettingsBtn.addEventListener('click', async () => {
   const settings = collectSettings();
   if (!settings.selectedTopics.length && !settings.customFeeds.length) {
-    alert('Please select at least one topic or add a custom feed.');
+    alert('Please select a category or add a custom feed.');
     return;
   }
 
-  selectedTopics = settings.selectedTopics;
+  activeCategory = settings.selectedTopics.length > 0 ? settings.selectedTopics[0] : '';
   customFeeds = settings.customFeeds;
   slideIntervalMs = settings.slideIntervalSec * 1000;
   timezone = settings.timezone;
@@ -586,7 +584,7 @@ document.getElementById('exportSettingsBtn').addEventListener('click', async () 
   } catch (err) {
     console.error(err);
   }
-  settings = settings || { selectedTopics, customFeeds, slideIntervalSec: slideIntervalMs / 1000 };
+  settings = settings || { selectedTopics: activeCategory ? [activeCategory] : [], customFeeds, slideIntervalSec: slideIntervalMs / 1000 };
 
   const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -618,7 +616,8 @@ importFileInput.addEventListener('change', async () => {
     }
 
     await saveSettings(settings);
-    selectedTopics = settings.selectedTopics;
+    const topics = settings.selectedTopics || [];
+    activeCategory = topics.length > 0 ? topics[0] : '';
     customFeeds = settings.customFeeds;
     slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
     timezone = settings.timezone || timezone;
@@ -648,16 +647,30 @@ async function init() {
   }
 
   const settings = saved || DEFAULT_SETTINGS;
-  selectedTopics = settings.selectedTopics || DEFAULT_SETTINGS.selectedTopics;
+  const topics = settings.selectedTopics || DEFAULT_SETTINGS.selectedTopics;
+  activeCategory = topics.length > 0 ? topics[0] : '';
   customFeeds = settings.customFeeds || [];
   slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
   timezone = settings.timezone || DEFAULT_SETTINGS.timezone;
   locationQuery = settings.locationQuery || '';
   weatherUnit = settings.weatherUnit || 'celsius';
 
+  document.querySelectorAll('.category-pill').forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.category === activeCategory);
+  });
+
   applyLocationSettings();
   fetchNews();
   fetchTimer = setInterval(fetchNews, FETCH_INTERVAL_MS);
 }
+
+// Category pill selection
+document.querySelectorAll('.category-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    activeCategory = pill.dataset.category;
+    document.querySelectorAll('.category-pill').forEach(p => p.classList.toggle('active', p === pill));
+    fetchNews();
+  });
+});
 
 init();
