@@ -553,6 +553,11 @@ html {
   gap: 8px;
 }
 
+.footer-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .hero h1 {
