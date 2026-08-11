@@ -4,6 +4,19 @@
    (the Flask app defines :root globally, so variables carry over)
    ========================================== */
 
+/* Override dashboard-specific body rules for the landing page */
+body {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  display: block;
+  flex-direction: column;
+  min-height: auto;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 .landing-header {
   position: fixed;
   top: 0;
