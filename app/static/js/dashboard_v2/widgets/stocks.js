@@ -1,5 +1,5 @@
 import { BaseWidget } from './base.js';
-import { loadV2Settings } from '../db.js';
+import { loadV2Settings } from '../../db.js';
 
 const FINNHUB_BASE = 'https://finnhub.io/api/v1/quote';
 
@@ -27,7 +27,7 @@ export class StocksWidget extends BaseWidget {
   }
 
   async fetchAndRender() {
-    const { loadV2Settings: loadSettings } = await import('../db.js');
+    const { loadV2Settings: loadSettings } = await import('../../db.js');
     const v2Settings = await loadSettings();
     const apiKey = v2Settings?.finnhubApiKey;
 

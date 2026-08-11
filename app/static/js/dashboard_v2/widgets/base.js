@@ -1,4 +1,4 @@
-import { saveWidgetSettings, deleteWidgetSettings } from '../db.js';
+import { saveWidgetSettings, deleteWidgetSettings } from '../../db.js';
 
 export class BaseWidget {
   constructor(id, grid, settings = {}, openSettingsCallback) {
