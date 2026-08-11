@@ -54,10 +54,13 @@ export class ClockWidget extends BaseWidget {
       dateHtml = `<div class="clock-date">${dateLabel} · ${tzLabel}</div>`;
     }
 
-    this.contentEl.innerHTML = `
+    const html = `
       <div class="clock-time">${time}</div>
       ${dateHtml}
     `;
+    console.log('[ClockWidget] Setting innerHTML:', html);
+    this.contentEl.innerHTML = html;
+    console.log('[ClockWidget] contentEl after:', this.contentEl.innerHTML);
   }
 
   async setSettings(newSettings) {
