@@ -506,13 +506,9 @@
 /* Gridstack overrides */
 .grid-stack-item-content {
   border-radius: 8px;
-  position: relative !important;
-  height: auto !important;
-  min-height: 100% !important;
-  width: 100% !important;
+  width: 100%;
   display: flex !important;
   flex-direction: column !important;
-  overflow: visible !important;
 }
 
 .grid-stack-item {

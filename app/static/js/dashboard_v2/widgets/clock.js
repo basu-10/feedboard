@@ -7,6 +7,8 @@ export class ClockWidget extends BaseWidget {
   constructor(id, grid, settings = {}, openSettingsCallback) {
     super(id, grid, settings, openSettingsCallback);
     this.timer = null;
+    this.timeEl = null;
+    this.dateEl = null;
   }
 
   static getDefaultSettings() {
@@ -18,28 +20,28 @@ export class ClockWidget extends BaseWidget {
     };
   }
 
-async onRender() {
-    console.log('[ClockWidget] onRender called');
+  async onRender() {
+    this.buildClockDOM();
     this.updateClock();
     this.timer = setInterval(() => this.updateClock(), 1000);
     this.timers.push(this.timer);
   }
-  
+
+  buildClockDOM() {
+    if (!this.contentEl) return;
+    this.contentEl.innerHTML = `
+      <div class="clock-time"></div>
+      <div class="clock-date"></div>
+    `;
+    this.timeEl = this.contentEl.querySelector('.clock-time');
+    this.dateEl = this.contentEl.querySelector('.clock-date');
+  }
+
   updateClock() {
-    if (!this.contentEl) {
-      console.warn('[ClockWidget] No contentEl!');
+    if (!this.contentEl || !this.timeEl) {
+      console.warn('[ClockWidget] No contentEl or timeEl!');
       return;
     }
-
-    const contentStyles = window.getComputedStyle(this.contentEl);
-    console.log('[ClockWidget] contentEl styles:', {
-      display: contentStyles.display,
-      height: contentStyles.height,
-      overflow: contentStyles.overflow,
-      color: contentStyles.color,
-      padding: contentStyles.padding,
-    });
-    console.log('[ClockWidget] contentEl children before:', this.contentEl.children.length);
 
     const { timezone, format, showSeconds, showDate } = this.settings;
     const now = new Date();
@@ -52,9 +54,8 @@ async onRender() {
       hour12: format === '12h',
     };
 
-    const time = new Intl.DateTimeFormat([], timeOpts).format(now);
+    this.timeEl.textContent = new Intl.DateTimeFormat([], timeOpts).format(now);
 
-    let dateHtml = '';
     if (showDate) {
       const dateOpts = {
         timeZone: timezone,
@@ -64,31 +65,15 @@ async onRender() {
       };
       const dateLabel = new Intl.DateTimeFormat([], dateOpts).format(now);
       const tzLabel = timezone.split('/').pop().replace(/_/g, ' ');
-      dateHtml = `<div class="clock-date">${dateLabel} · ${tzLabel}</div>`;
-    }
-
-    const html = `
-      <div class="clock-time">${time}</div>
-      ${dateHtml}
-    `;
-    console.log('[ClockWidget] Setting innerHTML:', html);
-    this.contentEl.innerHTML = html;
-    console.log('[ClockWidget] contentEl children after:', this.contentEl.children.length);
-    
-    const timeEl = this.contentEl.querySelector('.clock-time');
-    if (timeEl) {
-      const timeStyles = window.getComputedStyle(timeEl);
-      console.log('[ClockWidget] clock-time styles:', {
-        fontSize: timeStyles.fontSize,
-        color: timeStyles.color,
-        display: timeStyles.display,
-        height: timeStyles.height,
-      });
+      this.dateEl.textContent = `${dateLabel} · ${tzLabel}`;
+    } else if (this.dateEl) {
+      this.dateEl.textContent = '';
     }
   }
 
   async setSettings(newSettings) {
     await super.setSettings(newSettings);
+    this.buildClockDOM();
     this.updateClock();
   }
 
@@ -97,6 +82,8 @@ async onRender() {
       clearInterval(this.timer);
       this.timer = null;
     }
+    this.timeEl = null;
+    this.dateEl = null;
     super.destroy();
   }
 }

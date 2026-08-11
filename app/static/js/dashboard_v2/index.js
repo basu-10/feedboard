@@ -61,12 +61,7 @@ async function handleWidgetAdd(items) {
       widget.element = widgetEl;
       console.log('[index] Set widget.element, calling render...');
       await widget.render();
-      console.log('[index] Widget rendered, updating grid...');
-      
-      setTimeout(() => {
-        grid.update();
-        console.log('[index] Grid updated');
-      }, 0);
+      console.log('[index] Widget rendered');
     } else {
       console.warn('[index] No settings found for widget:', widgetId);
     }
