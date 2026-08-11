@@ -57,6 +57,71 @@ header {
   100% { opacity: 1; }
 }
 
+/* Top Status Bar (Time & Weather) */
+.status-bar {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(11, 15, 25, 0.85), transparent);
+}
+
+.status-bar.visible {
+  display: flex;
+}
+
+.status-time {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.time-main {
+  font-size: 1.6rem;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+
+.time-sub {
+  font-size: 0.8rem;
+  color: var(--subtext);
+}
+
+.status-weather {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.weather-icon {
+  font-size: 1.4rem;
+}
+
+.weather-temp {
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.weather-desc {
+  color: var(--subtext);
+  text-transform: capitalize;
+  font-size: 0.9rem;
+}
+
+.field-help {
+  font-size: 0.8rem;
+  color: var(--subtext);
+  margin-top: 0.4rem;
+}
+
 .btn {
   background: var(--card-bg);
   color: var(--text);

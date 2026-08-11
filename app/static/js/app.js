@@ -8,17 +8,52 @@ let slideIntervalMs = 8000;
 let selectedTopics = ['WORLD'];
 let customFeeds = []; // [{ id, url }]
 
+// Location & Time settings
+let timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+let locationQuery = ''; // free-text city name
+let weatherUnit = 'celsius';
+let weatherLocation = null; // resolved { lat, lon, name } from geocoding
+
 // Timers & Animators
 let rotationTimer = null;
 let fetchTimer = null;
 let progressTimer = null;
 let progressStartTime = 0;
+let clockTimer = null;
+let weatherTimer = null;
 
 // Default settings used when nothing is stored yet
 const DEFAULT_SETTINGS = {
   selectedTopics: ['WORLD'],
   customFeeds: [],
-  slideIntervalSec: 8
+  slideIntervalSec: 8,
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  locationQuery: '',
+  weatherUnit: 'celsius'
+};
+
+const WEATHER_CODES = {
+  0:  { icon: '☀️', desc: 'Clear sky' },
+  1:  { icon: '🌤️', desc: 'Mainly clear' },
+  2:  { icon: '⛅', desc: 'Partly cloudy' },
+  3:  { icon: '☁️', desc: 'Overcast' },
+  45: { icon: '🌫️', desc: 'Fog' },
+  48: { icon: '🌫️', desc: 'Rime fog' },
+  51: { icon: '🌦️', desc: 'Light drizzle' },
+  53: { icon: '🌦️', desc: 'Drizzle' },
+  55: { icon: '🌦️', desc: 'Dense drizzle' },
+  61: { icon: '🌧️', desc: 'Light rain' },
+  63: { icon: '🌧️', desc: 'Rain' },
+  65: { icon: '🌧️', desc: 'Heavy rain' },
+  71: { icon: '🌨️', desc: 'Light snow' },
+  73: { icon: '🌨️', desc: 'Snow' },
+  75: { icon: '❄️', desc: 'Heavy snow' },
+  80: { icon: '🌦️', desc: 'Rain showers' },
+  81: { icon: '🌧️', desc: 'Rain showers' },
+  82: { icon: '⛈️', desc: 'Violent showers' },
+  95: { icon: '⛈️', desc: 'Thunderstorm' },
+  96: { icon: '⛈️', desc: 'Thunderstorm with hail' },
+  99: { icon: '⛈️', desc: 'Thunderstorm with hail' }
 };
 
 // DOM Elements
@@ -44,6 +79,21 @@ const customFeedList = document.getElementById('customFeedList');
 const addFeedBtn = document.getElementById('addFeedBtn');
 const slideIntervalInput = document.getElementById('slideIntervalInput');
 const settingsTabs = document.getElementById('settingsTabs');
+
+// Status Bar DOM Elements
+const statusBar = document.getElementById('statusBar');
+const timeMain = document.getElementById('timeMain');
+const timeSub = document.getElementById('timeSub');
+const statusWeather = document.getElementById('statusWeather');
+const weatherIcon = document.getElementById('weatherIcon');
+const weatherTemp = document.getElementById('weatherTemp');
+const weatherDesc = document.getElementById('weatherDesc');
+
+// Location & Time DOM Elements
+const timezoneSelect = document.getElementById('timezoneSelect');
+const locationInput = document.getElementById('locationInput');
+const locationHelp = document.getElementById('locationHelp');
+const weatherUnitSelect = document.getElementById('weatherUnitSelect');
 
 // Human-readable labels for each built-in feed category
 const TOPIC_LABELS = {
@@ -281,6 +331,103 @@ document.addEventListener('keydown', (e) => {
   if (e.key === ' ') { e.preventDefault(); togglePause(); }
 });
 
+// ---- Clock & Weather ----
+function formatClock() {
+  const now = new Date();
+  const opts = {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  };
+  const time = new Intl.DateTimeFormat([], opts).format(now);
+  const tzLabel = timezone.split('/').pop().replace(/_/g, ' ');
+  const dateLabel = new Intl.DateTimeFormat([], {
+    timeZone: timezone,
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  }).format(now);
+
+  timeMain.textContent = time;
+  timeSub.textContent = `${dateLabel} · ${tzLabel}`;
+}
+
+function startClock() {
+  clearInterval(clockTimer);
+  formatClock();
+  clockTimer = setInterval(formatClock, 1000);
+}
+
+async function geocodeLocation(query) {
+  if (!query || !query.trim()) return null;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=en&format=json`;
+  const res = await fetch(url, { cache: 'no-store' });
+  const data = await res.json();
+  if (data.results && data.results.length) {
+    const r = data.results[0];
+    return {
+      lat: r.latitude,
+      lon: r.longitude,
+      name: [r.name, r.admin1, r.country].filter(Boolean).join(', ')
+    };
+  }
+  return null;
+}
+
+async function fetchWeather() {
+  if (!weatherLocation) {
+    statusWeather.style.display = 'none';
+    return;
+  }
+  try {
+    const { lat, lon } = weatherLocation;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=${weatherUnit}`;
+    const res = await fetch(url, { cache: 'no-store' });
+    const data = await res.json();
+    const cur = data.current;
+    if (!cur) return;
+
+    const code = WEATHER_CODES[cur.weather_code] || { icon: '🌡️', desc: 'Unknown' };
+    const unit = weatherUnit === 'fahrenheit' ? '°F' : '°C';
+
+    weatherIcon.textContent = code.icon;
+    weatherTemp.textContent = `${Math.round(cur.temperature_2m)}${unit}`;
+    weatherDesc.textContent = code.desc;
+    statusWeather.style.display = 'flex';
+  } catch (err) {
+    console.error('Weather fetch failed', err);
+  }
+}
+
+function startWeather() {
+  clearInterval(weatherTimer);
+  if (!weatherLocation) {
+    statusWeather.style.display = 'none';
+    return;
+  }
+  fetchWeather();
+  weatherTimer = setInterval(fetchWeather, 10 * 60 * 1000);
+}
+
+async function applyLocationSettings() {
+  statusBar.classList.add('visible');
+  startClock();
+
+  if (locationQuery && locationQuery.trim()) {
+    try {
+      weatherLocation = await geocodeLocation(locationQuery);
+    } catch (err) {
+      console.error('Geocoding failed', err);
+      weatherLocation = null;
+    }
+  } else {
+    weatherLocation = null;
+  }
+  startWeather();
+}
+
 // ---- Settings Persistence ----
 function collectSettings() {
   const checkedTopics = Array.from(topicList.querySelectorAll('input[name="topic"]:checked'))
@@ -296,7 +443,10 @@ function collectSettings() {
   return {
     selectedTopics: checkedTopics,
     customFeeds: feeds,
-    slideIntervalSec: parseInt(slideIntervalInput.value, 10) || 8
+    slideIntervalSec: parseInt(slideIntervalInput.value, 10) || 8,
+    timezone: timezoneSelect.value,
+    locationQuery: locationInput.value.trim(),
+    weatherUnit: weatherUnitSelect.value
   };
 }
 
@@ -304,12 +454,22 @@ function applySettingsToUI(settings) {
   selectedTopics = settings.selectedTopics || [];
   customFeeds = settings.customFeeds || [];
   slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
+  timezone = settings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  locationQuery = settings.locationQuery || '';
+  weatherUnit = settings.weatherUnit || 'celsius';
 
   topicList.querySelectorAll('input[name="topic"]').forEach(box => {
     box.checked = selectedTopics.includes(box.value);
   });
   renderCustomFeedRows();
   slideIntervalInput.value = settings.slideIntervalSec || 8;
+
+  if (!timezoneSelect.dataset.populated) {
+    populateTimezones();
+  }
+  timezoneSelect.value = timezone;
+  locationInput.value = locationQuery;
+  weatherUnitSelect.value = weatherUnit;
 }
 
 function renderCustomFeedRows() {
@@ -349,6 +509,22 @@ function createCustomFeedRow(id, url) {
   return row;
 }
 
+// Build the timezone dropdown from the runtime's available zones
+function populateTimezones() {
+  const zones = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [timezone];
+  const local = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  for (const z of zones.sort()) {
+    const opt = document.createElement('option');
+    opt.value = z;
+    opt.textContent = z.replace(/_/g, ' ');
+    if (z === local) opt.textContent += ' (local)';
+    timezoneSelect.appendChild(opt);
+  }
+  timezoneSelect.value = timezone;
+  timezoneSelect.dataset.populated = 'true';
+}
+
 // ---- Tabs ----
 function setupTabs() {
   settingsTabs.addEventListener('click', (e) => {
@@ -365,7 +541,8 @@ function setupTabs() {
 
 // ---- Modal Dialog Controls ----
 openSettingsBtn.addEventListener('click', () => {
-  applySettingsToUI({ selectedTopics, customFeeds, slideIntervalSec: slideIntervalMs / 1000 });
+  if (!timezoneSelect.dataset.populated) populateTimezones();
+  applySettingsToUI({ selectedTopics, customFeeds, slideIntervalSec: slideIntervalMs / 1000, timezone, locationQuery, weatherUnit });
   modalOverlay.classList.add('active');
 });
 
@@ -387,6 +564,9 @@ saveSettingsBtn.addEventListener('click', async () => {
   selectedTopics = settings.selectedTopics;
   customFeeds = settings.customFeeds;
   slideIntervalMs = settings.slideIntervalSec * 1000;
+  timezone = settings.timezone;
+  locationQuery = settings.locationQuery;
+  weatherUnit = settings.weatherUnit;
 
   try {
     await saveSettings(settings);
@@ -395,6 +575,7 @@ saveSettingsBtn.addEventListener('click', async () => {
   }
 
   modalOverlay.classList.remove('active');
+  applyLocationSettings();
   fetchNews();
 });
 
@@ -441,9 +622,13 @@ importFileInput.addEventListener('change', async () => {
     selectedTopics = settings.selectedTopics;
     customFeeds = settings.customFeeds;
     slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
+    timezone = settings.timezone || timezone;
+    locationQuery = settings.locationQuery || '';
+    weatherUnit = settings.weatherUnit || 'celsius';
 
     applySettingsToUI(settings);
     importStatus.textContent = 'Settings imported successfully.';
+    applyLocationSettings();
     fetchNews();
   } catch (err) {
     console.error(err);
@@ -455,6 +640,7 @@ importFileInput.addEventListener('change', async () => {
 // ---- Boot ----
 async function init() {
   setupTabs();
+  populateTimezones();
   let saved = null;
   try {
     saved = await loadSettings();
@@ -466,7 +652,11 @@ async function init() {
   selectedTopics = settings.selectedTopics || DEFAULT_SETTINGS.selectedTopics;
   customFeeds = settings.customFeeds || [];
   slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
+  timezone = settings.timezone || DEFAULT_SETTINGS.timezone;
+  locationQuery = settings.locationQuery || '';
+  weatherUnit = settings.weatherUnit || 'celsius';
 
+  applyLocationSettings();
   fetchNews();
   fetchTimer = setInterval(fetchNews, FETCH_INTERVAL_MS);
 }

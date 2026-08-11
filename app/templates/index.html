@@ -7,6 +7,19 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+  <!-- Top Status Bar -->
+  <div class="status-bar" id="statusBar">
+    <div class="status-time" id="statusTime">
+      <span class="time-main" id="timeMain">--:--</span>
+      <span class="time-sub" id="timeSub"></span>
+    </div>
+    <div class="status-weather" id="statusWeather">
+      <span class="weather-icon" id="weatherIcon">⛅</span>
+      <span class="weather-temp" id="weatherTemp">--°</span>
+      <span class="weather-desc" id="weatherDesc">—</span>
+    </div>
+  </div>
+
   <header>
     <div class="brand">
       <span class="live-dot"></span> News
@@ -73,6 +86,7 @@
 
       <div class="tabs" id="settingsTabs">
         <button class="tab-btn active" data-tab="general">General</button>
+        <button class="tab-btn" data-tab="location">Location &amp; Time</button>
         <button class="tab-btn" data-tab="data">Import / Export</button>
       </div>
 
@@ -132,6 +146,30 @@
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </button>
+        </div>
+      </div>
+
+      <!-- Location & Time Tab -->
+      <div class="tab-panel" data-panel="location">
+        <p class="tab-hint">Select a timezone for the clock. Optionally set a location to display live weather.</p>
+
+        <div class="form-group">
+          <label for="timezoneSelect">Timezone</label>
+          <select id="timezoneSelect"></select>
+        </div>
+
+        <div class="form-group">
+          <label for="locationInput">Location (city name)</label>
+          <input type="text" id="locationInput" placeholder="e.g. London, New York, Tokyo" autocomplete="off">
+          <p class="field-help" id="locationHelp"></p>
+        </div>
+
+        <div class="form-group">
+          <label for="weatherUnitSelect">Temperature Unit</label>
+          <select id="weatherUnitSelect">
+            <option value="celsius">Celsius (°C)</option>
+            <option value="fahrenheit">Fahrenheit (°F)</option>
+          </select>
         </div>
       </div>
 
