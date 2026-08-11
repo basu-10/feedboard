@@ -25,7 +25,8 @@ async function init() {
 
   const settings = saved || DEFAULT_SETTINGS;
   const topics = settings.selectedTopics || DEFAULT_SETTINGS.selectedTopics;
-  state.activeCategory = topics.length > 0 ? topics[0] : '';
+  state.allMode = settings.allMode || false;
+  state.activeCategory = state.allMode ? 'ALL' : (topics.length > 0 ? topics[0] : '');
   state.customFeeds = settings.customFeeds || [];
   state.slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
   state.timezone = settings.timezone || DEFAULT_SETTINGS.timezone;
@@ -33,7 +34,8 @@ async function init() {
   state.weatherUnit = settings.weatherUnit || 'celsius';
 
   document.querySelectorAll('.category-pill').forEach(pill => {
-    pill.classList.toggle('active', pill.dataset.category === state.activeCategory);
+    const isAll = pill.dataset.category === 'ALL';
+    pill.classList.toggle('active', isAll ? state.allMode : (!state.allMode && pill.dataset.category === state.activeCategory));
   });
 
   fetchNews();
@@ -49,8 +51,19 @@ async function init() {
 // Category pill selection
 document.querySelectorAll('.category-pill').forEach(pill => {
   pill.addEventListener('click', () => {
-    state.activeCategory = pill.dataset.category;
-    document.querySelectorAll('.category-pill').forEach(p => p.classList.toggle('active', p === pill));
+    if (pill.dataset.category === 'ALL') {
+      state.allMode = !state.allMode;
+      state.activeCategory = state.allMode ? 'ALL' : 'WORLD';
+    } else {
+      state.allMode = false;
+      state.activeCategory = pill.dataset.category;
+    }
+    document.querySelectorAll('.category-pill').forEach(p => {
+      const isActive = p.dataset.category === state.activeCategory && !state.allMode
+        ? true
+        : p.dataset.category === 'ALL' && state.allMode;
+      p.classList.toggle('active', isActive);
+    });
     fetchNews();
     restartSlideTimer();
   });

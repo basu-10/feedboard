@@ -21,7 +21,16 @@ setInterval(() => {
 }, 60000);
 
 // Build the list of active feeds (built-in + custom) for fetching
+// In ALL mode each topic/custom-feed becomes its own round-robin bucket
 export function getActiveFeeds() {
+  if (state.allMode) {
+    const feeds = Object.entries(TOPIC_FEEDS).map(([topic, url]) => ({ topic, url }));
+    for (const feed of state.customFeeds) {
+      if (feed.url) feeds.push({ topic: `CUSTOM:${feed.id}`, url: feed.url });
+    }
+    return feeds;
+  }
+
   const feeds = [];
   if (state.activeCategory && TOPIC_FEEDS[state.activeCategory]) {
     feeds.push({ topic: state.activeCategory, url: TOPIC_FEEDS[state.activeCategory] });
@@ -101,8 +110,15 @@ export async function fetchNews({ isRefresh = false } = {}) {
 
   try {
     const results = await Promise.all(feeds.map(fetchFeed));
-    const all = results.flat();
-    const queue = sortByDateDesc(buildRoundRobinQueue([all]));
+
+    let queue;
+    if (state.allMode) {
+      const perTopic = results.map(items => sortByDateDesc(items));
+      queue = buildRoundRobinQueue(perTopic);
+    } else {
+      const all = results.flat();
+      queue = sortByDateDesc(buildRoundRobinQueue([all]));
+    }
 
     if (queue.length === 0) {
       if (!isRefresh) titleEl.innerText = "No articles found for the selected feeds.";

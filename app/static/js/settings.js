@@ -44,8 +44,13 @@ function collectSettings() {
     })
     .filter(Boolean);
 
+  const activePill = document.querySelector('.category-pill.active');
+  const activeCategory = activePill ? activePill.dataset.category : '';
+  const allMode = activeCategory === 'ALL';
+
   return {
-    selectedTopics: state.activeCategory ? [state.activeCategory] : [],
+    selectedTopics: allMode ? [] : (activeCategory ? [activeCategory] : []),
+    allMode,
     customFeeds: feeds,
     slideIntervalSec: parseInt(slideIntervalInput.value, 10) || 8,
     timezone: timezoneSelect.value,
@@ -56,10 +61,12 @@ function collectSettings() {
 
 function applySettingsToUI(settings) {
   const topics = settings.selectedTopics || [];
-  state.activeCategory = topics.length > 0 ? topics[0] : '';
+  const allMode = settings.allMode || false;
+  state.allMode = allMode;
+  state.activeCategory = allMode ? 'ALL' : (topics.length > 0 ? topics[0] : '');
 
   document.querySelectorAll('.category-pill').forEach(pill => {
-    pill.classList.toggle('active', pill.dataset.category === state.activeCategory);
+    pill.classList.toggle('active', allMode ? pill.dataset.category === 'ALL' : pill.dataset.category === state.activeCategory);
   });
 
   state.customFeeds = settings.customFeeds || [];
@@ -163,12 +170,13 @@ function wireModal() {
 
   saveSettingsBtn.addEventListener('click', async () => {
     const settings = collectSettings();
-    if (!settings.selectedTopics.length && !settings.customFeeds.length) {
-      alert('Please select a category or add a custom feed.');
+    if (!settings.allMode && !settings.selectedTopics.length && !settings.customFeeds.length) {
+      alert('Please select a category, enable All mode, or add a custom feed.');
       return;
     }
 
-    state.activeCategory = settings.selectedTopics.length > 0 ? settings.selectedTopics[0] : '';
+    state.allMode = settings.allMode;
+    state.activeCategory = settings.allMode ? 'ALL' : (settings.selectedTopics.length > 0 ? settings.selectedTopics[0] : '');
     state.customFeeds = settings.customFeeds;
     state.slideIntervalMs = settings.slideIntervalSec * 1000;
     state.timezone = settings.timezone;
@@ -195,7 +203,7 @@ function wireModal() {
     } catch (err) {
       console.error(err);
     }
-    settings = settings || { selectedTopics: state.activeCategory ? [state.activeCategory] : [], customFeeds: state.customFeeds, slideIntervalSec: state.slideIntervalMs / 1000 };
+    settings = settings || { selectedTopics: state.activeCategory ? [state.activeCategory] : [], allMode: state.allMode, customFeeds: state.customFeeds, slideIntervalSec: state.slideIntervalMs / 1000 };
 
     const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -228,7 +236,8 @@ function wireModal() {
 
       await saveSettings(settings);
       const topics = settings.selectedTopics || [];
-      state.activeCategory = topics.length > 0 ? topics[0] : '';
+      state.allMode = settings.allMode || false;
+      state.activeCategory = state.allMode ? 'ALL' : (topics.length > 0 ? topics[0] : '');
       state.customFeeds = settings.customFeeds;
       state.slideIntervalMs = (settings.slideIntervalSec || 8) * 1000;
       state.timezone = settings.timezone || state.timezone;

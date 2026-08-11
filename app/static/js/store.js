@@ -8,6 +8,7 @@ export const state = {
   isPaused: false,
   slideIntervalMs: 8000,
   activeCategory: 'WORLD',
+  allMode: false,
   customFeeds: [],
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   locationQuery: '',

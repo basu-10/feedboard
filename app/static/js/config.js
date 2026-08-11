@@ -43,5 +43,6 @@ export const TOPIC_LABELS = {
   TECHNOLOGY: 'Technology',
   BUSINESS: 'Business',
   SCIENCE: 'Science',
-  SPORTS: 'Sports'
+  SPORTS: 'Sports',
+  ALL: 'All'
 };
