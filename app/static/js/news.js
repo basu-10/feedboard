@@ -67,30 +67,58 @@ export function buildRoundRobinQueue(feedsItems) {
   return queue;
 }
 
+// Sort items newest-first so genuinely fresh articles surface at the top
+function sortByDateDesc(items) {
+  return [...items].sort(
+    (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
+  );
+}
+
+// Drop items we already have (matched by link) so the queue stays fresh
+function dedupeAgainst(existing, incoming) {
+  const seen = new Set(existing.map(i => i.link));
+  return incoming.filter(i => i.link && !seen.has(i.link));
+}
+
 // Fetch News Data from all selected Endpoints
-export async function fetchNews() {
+// On a background refresh we preserve the current article and slot any
+// genuinely new items in front of it, instead of resetting to index 0.
+export async function fetchNews({ isRefresh = false } = {}) {
   const feeds = getActiveFeeds();
   if (!feeds.length) {
     titleEl.innerText = "No feeds selected. Select a category or add a custom feed.";
     return;
   }
 
-  titleEl.innerText = "Loading feed content...";
+  if (!isRefresh) titleEl.innerText = "Loading feed content...";
 
   try {
     const results = await Promise.all(feeds.map(fetchFeed));
-    const queue = buildRoundRobinQueue(results);
+    const all = results.flat();
+    const queue = sortByDateDesc(buildRoundRobinQueue([all]));
 
-    if (queue.length > 0) {
+    if (queue.length === 0) {
+      if (!isRefresh) titleEl.innerText = "No articles found for the selected feeds.";
+      return;
+    }
+
+    if (isRefresh && state.articles.length) {
+      const current = state.articles[state.currentIndex];
+      const fresh = dedupeAgainst(state.articles, queue);
+      if (fresh.length === 0) return; // nothing new; keep current view
+      state.articles = [...fresh, ...state.articles];
+      // Keep the article the user is currently viewing in place
+      const idx = state.articles.findIndex(i => i.link === current?.link);
+      state.currentIndex = idx >= 0 ? idx : 0;
+      renderArticle();
+    } else {
       state.articles = queue;
       state.currentIndex = 0;
       renderArticle();
-    } else {
-      titleEl.innerText = "No articles found for the selected feeds.";
     }
   } catch (error) {
     console.error("Fetch Error:", error);
-    titleEl.innerText = "Error fetching news data.";
+    if (!isRefresh) titleEl.innerText = "Error fetching news data.";
   }
 }
 

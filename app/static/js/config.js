@@ -1,5 +1,5 @@
 // System Configurations
-export const FETCH_INTERVAL_MS = 10 * 60 * 1000; // Background fetch every 10 minutes
+export const FETCH_INTERVAL_MS = 5 * 60 * 1000; // Background refresh every 5 minutes
 export const RSS2JSON_ENDPOINT = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
 export const GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search';

@@ -41,7 +41,7 @@ async function init() {
   applyLocationSettings();
 
   fetchTimer = setInterval(async () => {
-    await fetchNews();
+    await fetchNews({ isRefresh: true });
     restartSlideTimer();
   }, FETCH_INTERVAL_MS);
 }
