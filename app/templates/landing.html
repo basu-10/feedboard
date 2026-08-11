@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedboard — Live News Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body>
+  <!-- ===== HERO / HEADER ===== -->
+  <header class="landing-header">
+    <div class="container">
+      <div class="brand">
+        <span class="live-dot"></span>
+        Feedboard
+      </div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="/dashboard">Open Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== HERO SECTION ===== -->
+  <section class="hero">
+    <div class="container">
+      <h1>Full-screen,<br>auto-rotating<br>news slideshow</h1>
+      <p class="hero-subtitle">
+        A live news dashboard powered by RSS feeds. Pick topics, add custom sources,
+        and watch the headlines cycle with smooth transitions — no build step, no backend storage.
+      </p>
+      <div class="hero-cta">
+        <a href="/dashboard" class="btn hero-btn-primary">Open Dashboard</a>
+        <a href="#demo" class="btn hero-btn-secondary">Watch Demo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DEMO: Mock UI Animation ===== -->
+  <section class="demo-section" id="demo">
+    <div class="container">
+      <h2 class="demo-title">Live Preview</h2>
+      <p class="demo-subtitle">This demo cycles automatically to show how the dashboard looks with real content.</p>
+
+      <div class="mock-app">
+        <!-- mock top bar -->
+        <div class="mock-topbar">
+          <div class="mock-brand">
+            <span class="mock-live-dot"></span> NEWS
+          </div>
+          <div class="mock-clock" id="mockClock">--:--</div>
+          <div class="mock-weather">⛅ --°</div>
+          <div class="mock-settings-btn">⚙️</div>
+        </div>
+
+        <!-- mock category pills -->
+        <div class="mock-category-bar">
+          <span class="mock-pill active">🌍 World</span>
+          <span class="mock-pill">💻 Tech</span>
+          <span class="mock-pill">🔬 Science</span>
+          <span class="mock-pill">⚽ Sports</span>
+          <span class="mock-pill">📈 Business</span>
+        </div>
+
+        <!-- mock article card -->
+        <div class="mock-article-card" id="mockArticleCard">
+          <div class="mock-image-container">
+            <div class="mock-image" id="mockImage"></div>
+          </div>
+          <div class="mock-content">
+            <div class="mock-meta">
+              <span class="mock-tag" id="mockTag">Source</span>
+              <span class="mock-date" id="mockDate">Date</span>
+            </div>
+            <h3 class="mock-headline" id="mockHeadline">Loading feed content...</h3>
+            <p class="mock-snippet" id="mockSnippet"></p>
+            <a href="#" class="mock-read-more">Read original article ↗</a>
+          </div>
+        </div>
+
+        <!-- mock footer -->
+        <div class="mock-footer">
+          <span class="mock-counter" id="mockCounter">0 / 0</span>
+          <div class="mock-nav">
+            <span class="mock-nav-btn">◀</span>
+            <span class="mock-nav-btn">⏸</span>
+            <span class="mock-nav-btn">▶</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FEATURES ===== -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Features</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Auto-Rotating Slideshow</h3>
+          <p>Articles cycle automatically with smooth fade transitions and a live progress bar at the top.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📂</div>
+          <h3>Multiple Categories</h3>
+          <p>Pick from World, Technology, Business, Science, and Sports. Articles interleave round-robin across feeds.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">➕</div>
+          <h3>Custom RSS Feeds</h3>
+          <p>Add and remove as many custom feed URLs as you like. They group separately from built-in topics.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <h3>Settings Persistence</h3>
+          <p>Selected topics, custom feeds, and rotation speed save to your browser's IndexedDB — no backend needed.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏃</div>
+          <h3>Adjustable Speed</h3>
+          <p>Set rotation speed from 3 to 60 seconds per article to match your reading pace.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📤</div>
+          <h3>Import / Export</h3>
+          <p>Download all settings as JSON to migrate machines, or import a previously saved file.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⌨️</div>
+          <h3>Keyboard Support</h3>
+          <p>Use ← / → to navigate articles, Space to pause/resume rotation, and more.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Responsive Layout</h3>
+          <p>The dashboard adapts for smaller screens, switching from a two-column card to a single column.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌡️</div>
+          <h3>Clock & Weather</h3>
+          <p>Top bar shows a live clock in your chosen timezone and current weather for a selected location.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== HOW IT WORKS ===== -->
+  <section class="how-it-works">
+    <div class="container">
+      <h2>How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Select Categories</h3>
+          <p>Tick built-in news topics or add custom RSS feed URLs through the settings panel.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Watch Feeds Cycle</h3>
+          <p>Articles interleave round-robin across all active feeds with smooth fade transitions.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Navigate & Customize</h3>
+          <p>Use footer controls, keyboard shortcuts, or adjust speed and location at any time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="landing-footer">
+    <div class="container">
+      <div class="footer-brand">
+        <span class="live-dot"></span> Feedboard
+      </div>
+      <a href="/dashboard" class="btn">Open Dashboard →</a>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+</body>
+</html>

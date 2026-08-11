@@ -8,8 +8,13 @@ app = Flask(
 
 
 @app.route("/")
+def landing():
+    return render_template("landing.html")
+
+
+@app.route("/dashboard")
 def index():
-    return render_template("index.html")
+    return render_template("dashboard.html")
 
 
 if __name__ == "__main__":
