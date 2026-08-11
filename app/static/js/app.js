@@ -77,7 +77,11 @@ function shuffle(arr) {
 
 // Fetch a single feed and return its items tagged with the source topic
 async function fetchFeed(feed) {
-  const response = await fetch(`${RSS2JSON_ENDPOINT}${encodeURIComponent(feed.url)}`);
+  const cacheBust = `_=${Date.now()}`;
+  const response = await fetch(
+    `${RSS2JSON_ENDPOINT}${encodeURIComponent(feed.url)}&${cacheBust}`,
+    { cache: 'no-store' }
+  );
   const data = await response.json();
   if (data.status === 'ok' && data.items.length > 0) {
     return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
