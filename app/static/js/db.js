@@ -46,10 +46,10 @@ async function idbSet(key, value) {
   });
 }
 
-async function loadSettings() {
+export async function loadSettings() {
   return idbGet(SETTINGS_KEY);
 }
 
-async function saveSettings(settings) {
+export async function saveSettings(settings) {
   await idbSet(SETTINGS_KEY, settings);
 }
