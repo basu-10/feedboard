@@ -2,6 +2,11 @@ import { BaseWidget } from './base.js';
 
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3/simple/price';
 
+const DEFAULT_REFRESH_INTERVAL = (() => {
+  const env = window.V2_REFRESH_INTERVAL_SECONDS;
+  return Number.isFinite(env) && env > 0 ? env : 60;
+})();
+
 const CHART_COLORS = [
   '#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa',
   '#22d3ee', '#fb7185', '#a3e635', '#facc15', '#818cf8',
@@ -25,7 +30,7 @@ export class CryptoWidget extends BaseWidget {
       currency: 'usd',
       displayMode: 'table',
       chartMetric: 'price',
-      refreshInterval: 60,
+      refreshInterval: DEFAULT_REFRESH_INTERVAL,
     };
   }
 

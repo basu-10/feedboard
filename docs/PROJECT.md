@@ -151,6 +151,12 @@ User visits /dashboard/v2
 - Optional, loaded from `~/feedboard-data/configs/.env` as `RSS2JSON_API_KEY`
 - Passed to templates via `rss2json_api_key` variable
 
+### V2 Auto-Fetch Interval
+- Optional, loaded from `~/feedboard-data/configs/.env` as `V2_REFRESH_INTERVAL_SECONDS` (integer, seconds)
+- Overrides the default refresh interval (60s) for V2 widgets (stocks, crypto) when set
+- Overridable per-widget via the widget settings modal; if unset, defaults to 60s
+- Passed to the V2 template as `window.V2_REFRESH_INTERVAL_SECONDS`
+
 ### Finnhub (Stocks)
 - Required for Stock Prices widget
 - Entered via Global Settings modal in V2

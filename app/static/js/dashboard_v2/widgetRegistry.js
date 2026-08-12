@@ -1,3 +1,8 @@
+const DEFAULT_REFRESH_INTERVAL = (() => {
+  const env = window.V2_REFRESH_INTERVAL_SECONDS;
+  return Number.isFinite(env) && env > 0 ? env : 60;
+})();
+
 const WIDGET_REGISTRY = {
   clock: {
     name: 'Clock',
@@ -100,7 +105,7 @@ const WIDGET_REGISTRY = {
         label: 'Refresh Interval (seconds)',
         min: 30,
         max: 300,
-        default: 60,
+        default: DEFAULT_REFRESH_INTERVAL,
       },
     },
   },
@@ -139,7 +144,7 @@ const WIDGET_REGISTRY = {
         label: 'Refresh Interval (seconds)',
         min: 60,
         max: 300,
-        default: 60,
+        default: DEFAULT_REFRESH_INTERVAL,
       },
     },
   },

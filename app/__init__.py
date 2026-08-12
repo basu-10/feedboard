@@ -15,6 +15,7 @@ app = Flask(
 
 
 def _load_env_file(path):
+    values = {}
     try:
         with open(path, "r") as f:
             for line in f:
@@ -22,14 +23,13 @@ def _load_env_file(path):
                 if not line or line.startswith("#") or "=" not in line:
                     continue
                 key, _, value = line.partition("=")
-                if key.strip() == "RSS2JSON_API_KEY":
-                    return value.strip()
+                values[key.strip()] = value.strip()
     except OSError:
         pass
-    return None
+    return values
 
 
-def _load_rss2json_key():
+def _load_config_env():
     data_dir = os.environ.get("FEEDBOARD_DATA_DIR")
     if not data_dir:
         home = os.environ.get("HOME") or os.path.expanduser("~")
@@ -37,7 +37,15 @@ def _load_rss2json_key():
     return _load_env_file(os.path.join(data_dir, "configs", ".env"))
 
 
-RSS2JSON_API_KEY = _load_rss2json_key()
+_CONFIG_ENV = _load_config_env()
+
+RSS2JSON_API_KEY = _CONFIG_ENV.get("RSS2JSON_API_KEY")
+
+V2_REFRESH_INTERVAL_SECONDS = None
+try:
+    V2_REFRESH_INTERVAL_SECONDS = int(_CONFIG_ENV.get("V2_REFRESH_INTERVAL_SECONDS"))
+except (TypeError, ValueError):
+    V2_REFRESH_INTERVAL_SECONDS = None
 
 
 @app.route("/")
@@ -52,7 +60,11 @@ def index():
 
 @app.route("/dashboard/v2")
 def dashboard_v2():
-    return render_template("dashboard_v2.html", rss2json_api_key=RSS2JSON_API_KEY)
+    return render_template(
+        "dashboard_v2.html",
+        rss2json_api_key=RSS2JSON_API_KEY,
+        v2_refresh_interval_seconds=V2_REFRESH_INTERVAL_SECONDS,
+    )
 
 
 # ---------------------------------------------------------------------------
