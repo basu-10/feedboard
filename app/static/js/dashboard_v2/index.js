@@ -3,6 +3,8 @@ import { initWidgetSettingsModal } from './widgetSettings.js';
 import { initGlobalSettingsModal, openGlobalSettingsModal } from './globalSettings.js';
 import { initWidgetPicker, openWidgetPicker } from './widgetPicker.js';
 import { initLayoutModal, openLayoutModal } from './layoutModal.js';
+import { applyLayout } from './layoutManager.js';
+import { BUILTIN_LAYOUTS } from './builtinLayouts.js';
 
 async function init() {
   try {
@@ -54,6 +56,18 @@ async function init() {
       layoutMenu?.classList.remove('open');
       layoutMenuBtn?.setAttribute('aria-expanded', 'false');
       openLayoutModal();
+    });
+
+    document.querySelectorAll('[data-builtin-layout]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-builtin-layout');
+        const entry = BUILTIN_LAYOUTS.find(l => l.id === id);
+        if (!entry) return;
+        if (!confirm(`Apply the "${entry.label}" layout? This will replace your current dashboard.`)) return;
+        layoutMenu?.classList.remove('open');
+        layoutMenuBtn?.setAttribute('aria-expanded', 'false');
+        await applyLayout(entry.layout);
+      });
     });
 
     console.log('Dashboard v2 initialized successfully');

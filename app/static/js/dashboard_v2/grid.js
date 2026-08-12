@@ -1,5 +1,6 @@
-import { getWidgetRegistry, createWidget } from './widgetRegistry.js';
+import { getWidgetRegistry, createWidget, generateWidgetId } from './widgetRegistry.js';
 import { loadGridLayout, saveGridLayout, loadWidgetSettings } from '../db.js';
+import { DEFAULT_LAYOUT } from './builtinLayouts.js';
 
 const COLUMNS = 12;
 const ROW_HEIGHT = 80;
@@ -69,14 +70,25 @@ export function removeWidget(id) {
 
 async function loadPersistedLayout() {
   const layout = await loadGridLayout();
-  if (!layout || !layout.length) return;
-
-  suppressPersist = true;
-  for (const item of layout) {
-    const settings = await loadWidgetSettings(item.id);
-    if (settings) {
-      await addWidget(settings.type, item.id, { ...settings, w: item.w, h: item.h });
+  if (layout && layout.length) {
+    suppressPersist = true;
+    for (const item of layout) {
+      const settings = await loadWidgetSettings(item.id);
+      if (settings) {
+        await addWidget(settings.type, item.id, { ...settings, w: item.w, h: item.h });
+      }
     }
+    suppressPersist = false;
+    return;
+  }
+
+  // New user: apply the default flagship layout
+  suppressPersist = true;
+  for (const item of DEFAULT_LAYOUT.widgets) {
+    const id = generateWidgetId();
+    const settings = item.settings || {};
+    await saveWidgetSettings(id, { id, ...settings, type: item.type });
+    await addWidget(item.type, id, { ...settings, w: item.w, h: item.h });
   }
   suppressPersist = false;
 }

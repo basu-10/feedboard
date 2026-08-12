@@ -86,6 +86,27 @@
   background: var(--bg);
 }
 
+.btn-menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0;
+}
+
+.btn-menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.btn-menu-group-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 0.25rem 0.7rem 0.1rem;
+}
+
 .v2-main {
   flex: 1;
   padding: 1rem;

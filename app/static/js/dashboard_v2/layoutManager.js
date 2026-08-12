@@ -45,6 +45,48 @@ export async function exportLayout() {
   URL.revokeObjectURL(url);
 }
 
+export async function applyLayout(payload) {
+  if (!payload || !Array.isArray(payload.widgets) || payload.version !== 1) {
+    alert('Invalid layout format');
+    return;
+  }
+
+  const grid = getGrid();
+  const container = grid.getContainer();
+
+  const existingIds = [...container.children]
+    .filter(el => el.dataset.widgetId)
+    .map(el => el.dataset.widgetId);
+
+  for (const id of existingIds) {
+    grid.removeWidget(id);
+  }
+
+  await new Promise(r => setTimeout(r, 50));
+
+  const db = await openDB();
+  const widgetsTx = db.transaction(WIDGETS_STORE, 'readwrite');
+  widgetsTx.objectStore(WIDGETS_STORE).clear();
+  await new Promise((resolve, reject) => {
+    widgetsTx.oncomplete = resolve;
+    widgetsTx.onerror = reject;
+  });
+
+  const layoutTx = db.transaction(GRID_LAYOUT_STORE, 'readwrite');
+  layoutTx.objectStore(GRID_LAYOUT_STORE).clear();
+  await new Promise((resolve, reject) => {
+    layoutTx.oncomplete = resolve;
+    layoutTx.onerror = reject;
+  });
+
+  for (const item of payload.widgets) {
+    const id = generateWidgetId();
+    const settings = item.settings || {};
+    await saveWidgetSettings(id, { id, ...settings, type: item.type });
+    await grid.addWidget(item.type, id, { ...settings, w: item.w, h: item.h });
+  }
+}
+
 export async function importLayout(file) {
   const text = await file.text();
   let payload;
@@ -55,43 +97,5 @@ export async function importLayout(file) {
     return;
   }
 
-  if (!payload || !Array.isArray(payload.widgets) || payload.version !== 1) {
-    alert('Invalid layout format');
-    return;
-  }
-
-  const grid = getGrid();
-  const container = grid.getContainer();
-  
-  const existingIds = [...container.children]
-    .filter(el => el.dataset.widgetId)
-    .map(el => el.dataset.widgetId);
-  
-  for (const id of existingIds) {
-    grid.removeWidget(id);
-  }
-  
-  await new Promise(r => setTimeout(r, 50));
-  
-  const db = await openDB();
-  const widgetsTx = db.transaction(WIDGETS_STORE, 'readwrite');
-  widgetsTx.objectStore(WIDGETS_STORE).clear();
-  await new Promise((resolve, reject) => {
-    widgetsTx.oncomplete = resolve;
-    widgetsTx.onerror = reject;
-  });
-  
-  const layoutTx = db.transaction(GRID_LAYOUT_STORE, 'readwrite');
-  layoutTx.objectStore(GRID_LAYOUT_STORE).clear();
-  await new Promise((resolve, reject) => {
-    layoutTx.oncomplete = resolve;
-    layoutTx.onerror = reject;
-  });
-  
-  for (const item of payload.widgets) {
-    const id = generateWidgetId();
-    const settings = item.settings || {};
-    await saveWidgetSettings(id, { id, ...settings, type: item.type });
-    await grid.addWidget(item.type, id, { ...settings, w: item.w, h: item.h });
-  }
+  await applyLayout(payload);
 }
