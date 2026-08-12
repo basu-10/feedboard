@@ -2,13 +2,15 @@
 
 ## External APIs Used
 
-### 1. rss2json.com (News)
-**Purpose**: Convert RSS feeds to JSON for news articles
+### 1. News (server-side RSS proxy + rss2json fallback)
+**Primary source**: The Flask `/api/rss?rss_url=` endpoint fetches the source RSS
+feed server-side and returns JSON — no browser CORS issue, no third-party dependency.
+**Fallback**: `https://api.rss2json.com/v1/api.json?rss_url={encoded_rss_url}&api_key={key}`
+(used only when the proxy fails).
 **Used by**: V1 News, V2 News Widget
-**Authentication**: Optional API key
-**Rate Limits**: Generous free tier
-**Endpoint**: `https://api.rss2json.com/v1/api.json?rss_url={encoded_rss_url}&api_key={key}`
-**V1 Config**: `RSS2JSON_ENDPOINT` in `config.js`
+**Authentication**: Optional API key (rss2json fallback only)
+**Rate Limits**: rss2json free tier is generous but rate-limited
+**V1 Config**: `RSS_PROXY_ENDPOINT` / `RSS2JSON_ENDPOINT` in `config.js`
 **API Key**: Loaded from `~/feedboard-data/configs/.env` as `RSS2JSON_API_KEY`
 
 **Built-in Feed URLs** (from `config.js`):
@@ -63,9 +65,9 @@
 - cardano (ADA)
 - chainlink (LINK)
 
-### 4. Open-Meteo (Weather - V1 only)
+### 4. Open-Meteo (Weather)
 **Purpose**: Geocoding and weather forecast
-**Used by**: V1 Weather (top bar)
+**Used by**: V1 Weather (top bar), V2 Weather widget
 **Authentication**: None required
 **Endpoints**:
 - Geocoding: `https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=en&format=json`
@@ -90,7 +92,7 @@ All routes pass `rss2json_api_key` to templates (may be `null`/`undefined`).
 |-------|-----|-------|
 | `settings` | `app` | V1 settings object |
 | `widgets` | `<uuid>` | `{ id, type, ...widgetSettings }` |
-| `gridLayout` | `layout` | Gridstack layout array |
+| `gridLayout` | `layout` | Ordered array of `{ id, w, h }` (column/row spans) |
 | `v2Settings` | `global` | `{ finnhubApiKey }` |
 
 ### V1 Settings Object Structure
@@ -112,22 +114,28 @@ All routes pass `rss2json_api_key` to templates (may be `null`/`undefined`).
 { type: 'clock', timezone: '...', format: '24h', showSeconds: true, showDate: true }
 
 // News
-{ type: 'news', mode: 'single', category: 'WORLD', customFeeds: [], rotationSpeed: 8, autoRotate: true }
+{ type: 'news', mode: 'single', category: 'WORLD', customFeeds: [], rotationSpeed: 8, autoRotate: true, refreshInterval: 600 }
 
 // Stocks
-{ type: 'stocks', symbols: ['AAPL', 'GOOGL'], refreshInterval: 60 }
+{ type: 'stocks', symbols: ['AAPL', 'GOOGL'], displayMode: 'table', chartMetric: 'price', refreshInterval: 60 }
 
 // Crypto
-{ type: 'crypto', coins: ['bitcoin', 'ethereum'], currency: 'usd', refreshInterval: 60 }
+{ type: 'crypto', coins: ['bitcoin', 'ethereum'], currency: 'usd', displayMode: 'table', chartMetric: 'price', refreshInterval: 60 }
+
+// Weather
+{ type: 'weather', location: 'London, UK', unit: 'celsius', showForecast: true, refreshInterval: 600 }
 ```
 
-### V2 Grid Layout Structure (Gridstack format)
+### V2 Grid Layout Structure (ordered spans)
 ```javascript
 [
-  { id: 'uuid', x: 0, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
-  { id: 'uuid', x: 3, y: 0, w: 6, h: 4, minW: 4, minH: 3 }
+  { id: 'uuid', w: 3, h: 2 },
+  { id: 'uuid', w: 6, h: 4 }
 ]
 ```
+Each entry is one widget in display order; `w`/`h` are column/row spans on the
+12-column CSS grid. There is no `x`/`y` — position follows array order via CSS grid
+auto-flow.
 
 ## Error Handling Patterns
 
@@ -142,6 +150,8 @@ All routes pass `rss2json_api_key` to templates (may be `null`/`undefined`).
 - Failures logged to console, non-blocking
 - Graceful degradation if storage unavailable
 
-## CORS
-- All external APIs support CORS for browser requests
-- No proxy needed for client-side fetches
+## CORS / Proxy
+- News is fetched **server-side** by the Flask `/api/rss` endpoint (no browser CORS
+  concern). The optional rss2json.com fallback is used only when the proxy fails.
+- Stocks (Finnhub), Crypto (CoinGecko), and Weather (Open-Meteo) are fetched
+  directly from the browser; these services send CORS headers.
