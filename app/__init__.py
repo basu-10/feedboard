@@ -34,18 +34,31 @@ def _load_config_env():
     if not data_dir:
         home = os.environ.get("HOME") or os.path.expanduser("~")
         data_dir = os.path.join(home, "feedboard-data")
-    return _load_env_file(os.path.join(data_dir, "configs", ".env"))
+    return os.path.join(data_dir, "configs", ".env"), _load_env_file(
+        os.path.join(data_dir, "configs", ".env")
+    )
 
 
-_CONFIG_ENV = _load_config_env()
+_CONFIG_ENV_PATH, _CONFIG_ENV = _load_config_env()
 
 RSS2JSON_API_KEY = _CONFIG_ENV.get("RSS2JSON_API_KEY")
 
-V2_REFRESH_INTERVAL_SECONDS = None
+_V2_REFRESH_RAW = _CONFIG_ENV.get("V2_REFRESH_INTERVAL_SECONDS")
+if _V2_REFRESH_RAW is None:
+    raise RuntimeError(
+        "V2_REFRESH_INTERVAL_SECONDS is required in the .env file "
+        f"({_CONFIG_ENV_PATH}) but was not found."
+    )
 try:
-    V2_REFRESH_INTERVAL_SECONDS = int(_CONFIG_ENV.get("V2_REFRESH_INTERVAL_SECONDS"))
-except (TypeError, ValueError):
-    V2_REFRESH_INTERVAL_SECONDS = None
+    V2_REFRESH_INTERVAL_SECONDS = int(_V2_REFRESH_RAW)
+except ValueError:
+    raise RuntimeError(
+        f"V2_REFRESH_INTERVAL_SECONDS must be an integer (seconds), got: {_V2_REFRESH_RAW!r}"
+    )
+if V2_REFRESH_INTERVAL_SECONDS <= 0:
+    raise RuntimeError(
+        f"V2_REFRESH_INTERVAL_SECONDS must be a positive integer, got: {V2_REFRESH_INTERVAL_SECONDS}"
+    )
 
 
 @app.route("/")

@@ -28,10 +28,20 @@ if [ ! -f "$ENV_FILE" ]; then
 # rss2json API key (optional)
 # Get yours at https://rss2json.com
 # RSS2JSON_API_KEY=
+
+# REQUIRED: V2 auto-fetch refresh interval (seconds).
+# The app will refuse to start if this is missing or not a positive integer.
+V2_REFRESH_INTERVAL_SECONDS=60
 EOF
   echo "Created placeholder env file at $ENV_FILE"
 else
   echo "Env file already exists at $ENV_FILE"
+  if ! grep -q '^V2_REFRESH_INTERVAL_SECONDS=' "$ENV_FILE"; then
+    echo "" >> "$ENV_FILE"
+    echo "# REQUIRED: V2 auto-fetch refresh interval (seconds)." >> "$ENV_FILE"
+    echo "V2_REFRESH_INTERVAL_SECONDS=60" >> "$ENV_FILE"
+    echo "Added required V2_REFRESH_INTERVAL_SECONDS to existing env file."
+  fi
 fi
 echo "Data directory ready at $DATA_DIR (configs at $CONFIGS_DIR)."
 
