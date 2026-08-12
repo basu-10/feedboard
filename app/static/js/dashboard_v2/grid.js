@@ -56,7 +56,7 @@ export async function addWidget(type, id, settings) {
 
   widgets.set(id, { widget, el, w, h, minW, minH });
   widget.onRender();
-  persistLayout();
+  persistLayout(true);
   return widget;
 }
 
@@ -65,7 +65,7 @@ export function removeWidget(id) {
   if (!entry) return;
   entry.widget.destroy();
   widgets.delete(id);
-  persistLayout();
+  persistLayout(true);
 }
 
 async function loadPersistedLayout() {
@@ -91,6 +91,7 @@ async function loadPersistedLayout() {
     await addWidget(item.type, id, { ...settings, w: item.w, h: item.h });
   }
   suppressPersist = false;
+  persistLayout(true);
 }
 
 function attachResizeHandles(widget, el, minW, minH) {
@@ -138,7 +139,7 @@ function startResize(e, widget, el, dir, minW, minH) {
     document.removeEventListener('mouseup', onUp);
     document.body.classList.remove('resizing');
     if (mainEl) mainEl.scrollTop = scrollTop;
-    persistLayout();
+    persistLayout(true);
   }
 
   document.addEventListener('mousemove', onMove);
@@ -146,10 +147,9 @@ function startResize(e, widget, el, dir, minW, minH) {
   document.body.classList.add('resizing');
 }
 
-function persistLayout() {
+function persistLayout(immediate = false) {
   if (suppressPersist) return;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
+  const doSave = () => {
     const order = [...container.children]
       .filter(el => el.dataset.widgetId)
       .map(el => {
@@ -157,7 +157,13 @@ function persistLayout() {
         return { id: el.dataset.widgetId, w: entry.w, h: entry.h };
       });
     saveGridLayout(order);
-  }, 200);
+  };
+  clearTimeout(saveTimer);
+  if (immediate) {
+    doSave();
+  } else {
+    saveTimer = setTimeout(doSave, 200);
+  }
 }
 
 const layoutApi = {
