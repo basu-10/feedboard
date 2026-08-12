@@ -1,5 +1,5 @@
 import { getWidgetRegistry, createWidget, generateWidgetId } from './widgetRegistry.js';
-import { loadGridLayout, saveGridLayout, loadWidgetSettings } from '../db.js';
+import { loadGridLayout, saveGridLayout, loadWidgetSettings, saveWidgetSettings } from '../db.js';
 import { DEFAULT_LAYOUT } from './builtinLayouts.js';
 
 const COLUMNS = 12;
