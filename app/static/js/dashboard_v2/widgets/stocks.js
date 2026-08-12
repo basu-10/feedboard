@@ -2,9 +2,6 @@ import { BaseWidget } from './base.js';
 import { loadV2Settings } from '../../db.js';
 
 const FINNHUB_BASE = 'https://finnhub.io/api/v1/quote';
-const FINNHUB_CANDLE = 'https://finnhub.io/api/v1/stock/candle';
-const HISTORY_DAYS = 30;
-const CANDLE_CACHE_MS = 5 * 60 * 1000;
 
 const CHART_COLORS = [
   '#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa',
@@ -20,7 +17,6 @@ export class StocksWidget extends BaseWidget {
     this.refreshTimer = null;
     this.cache = null;
     this.cacheExpiry = 0;
-    this.candleCache = null;
     this.chartInstance = null;
   }
 
@@ -55,8 +51,7 @@ export class StocksWidget extends BaseWidget {
       this.cacheExpiry = Date.now() + this.settings.refreshInterval * 1000;
 
       if (this.settings.displayMode === 'chart') {
-        const history = await this.fetchHistory(apiKey);
-        this.renderChart(quotes, history);
+        this.renderChart(quotes);
       } else {
         this.renderQuotes(quotes);
       }
@@ -75,34 +70,6 @@ export class StocksWidget extends BaseWidget {
     );
 
     return Promise.all(promises);
-  }
-
-  async fetchHistory(apiKey) {
-    const symbolsKey = this.settings.symbols.join(',');
-    const now = Date.now();
-
-    if (this.candleCache && this.candleCache.symbolsKey === symbolsKey && now < this.candleCache.expiry) {
-      return this.candleCache.data;
-    }
-
-    const to = Math.floor(now / 1000);
-    const from = to - HISTORY_DAYS * 24 * 60 * 60;
-
-    const results = await Promise.all(this.settings.symbols.map(async (symbol) => {
-      try {
-        const res = await fetch(`${FINNHUB_CANDLE}?symbol=${symbol}&resolution=D&from=${from}&to=${to}&token=${apiKey}`);
-        const data = await res.json();
-        if (data && data.s === 'ok' && Array.isArray(data.c) && data.c.length) {
-          return { symbol, t: data.t, c: data.c };
-        }
-        return { symbol, t: [], c: [], error: data?.s || 'no_data' };
-      } catch (err) {
-        return { symbol, t: [], c: [], error: err.message };
-      }
-    }));
-
-    this.candleCache = { symbolsKey, data: results, expiry: now + CANDLE_CACHE_MS };
-    return results;
   }
 
   renderQuotes(quotes) {
@@ -147,7 +114,7 @@ export class StocksWidget extends BaseWidget {
     `;
   }
 
-  renderChart(quotes, history) {
+  renderChart(quotes) {
     if (!this.contentEl) return;
 
     if (!window.Chart) {
@@ -155,75 +122,90 @@ export class StocksWidget extends BaseWidget {
       return;
     }
 
+    const valid = quotes.filter(q => !q.error && typeof q.c === 'number');
+    if (!valid.length) {
+      this.contentEl.innerHTML = `
+        <div class="widget-error">No valid price data for the selected symbols.</div>
+        <div class="stocks-last-updated">Updated: ${new Date().toLocaleTimeString()}</div>
+      `;
+      return;
+    }
+
+    const labels = valid.map(q => q.symbol);
+    const data = valid.map(q => q.c);
+    const colors = valid.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
+
     this.contentEl.innerHTML = `
       <div class="stocks-chart-wrap">
         <canvas id="stocksChart-${this.id}"></canvas>
       </div>
-      <div class="stocks-last-updated">Updated: ${new Date().toLocaleTimeString()} · ${HISTORY_DAYS}d history</div>
+      <div class="stocks-last-updated">Updated: ${new Date().toLocaleTimeString()}</div>
     `;
 
     const canvas = this.contentEl.querySelector('canvas');
     const ctx = canvas.getContext('2d');
-
-    const timeSet = new Set();
-    history.forEach(h => (h.t || []).forEach(t => timeSet.add(t)));
-    const labels = [...timeSet].sort((a, b) => a - b);
-    const labelText = labels.map(t =>
-      new Date(t * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    );
-
-    const quoteMap = new Map(quotes.map(q => [q.symbol, q]));
-
-    const datasets = history
-      .filter(h => h.t && h.t.length)
-      .map((h, i) => {
-        const valueByTime = new Map(h.t.map((t, idx) => [t, h.c[idx]]));
-        const quote = quoteMap.get(h.symbol);
-        const last = h.c[h.c.length - 1];
-        const point = quote && typeof quote.c === 'number' ? quote.c : last;
-        return {
-          label: h.symbol,
-          data: labels.map(t => valueByTime.get(t) ?? null),
-          borderColor: CHART_COLORS[i % CHART_COLORS.length],
-          backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
-          borderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          tension: 0.25,
-          spanGaps: true,
-          _latest: point,
-        };
-      });
 
     const rootStyles = getComputedStyle(document.documentElement);
     const textColor = rootStyles.getPropertyValue('--text').trim() || '#e5e7eb';
     const mutedColor = rootStyles.getPropertyValue('--muted').trim() || '#9ca3af';
     const borderColor = rootStyles.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.1)';
 
+    const valueLabelPlugin = {
+      id: 'barValueLabels',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+        meta.data.forEach((bar, index) => {
+          const value = chart.data.datasets[0].data[index];
+          if (value == null) return;
+          ctx.fillStyle = textColor;
+          ctx.font = '11px ui-sans-serif, system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(value.toFixed(2), bar.x, bar.y - 6);
+        });
+      },
+    };
+
     this.chartInstance = new window.Chart(ctx, {
-      type: 'line',
-      data: { labels: labelText, datasets },
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Price',
+            data,
+            backgroundColor: colors,
+            borderColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+        ],
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: {
-            labels: { color: mutedColor, boxWidth: 12, font: { size: 11 } },
-          },
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: (item) => {
-                const v = item.parsed.y;
-                return `${item.dataset.label}: ${v != null ? v.toFixed(2) : '--'}`;
+                const q = valid[item.dataIndex];
+                const change = q.c - q.pc;
+                const pct = q.pc ? ((change / q.pc) * 100).toFixed(2) : '0.00';
+                const sign = change >= 0 ? '+' : '';
+                return [
+                  `Price: ${q.c.toFixed(2)}`,
+                  `Change: ${sign}${change.toFixed(2)} (${sign}${pct}%)`,
+                ];
               },
             },
           },
         },
         scales: {
           x: {
-            ticks: { color: mutedColor, maxTicksLimit: 6, font: { size: 10 } },
-            grid: { color: borderColor },
+            ticks: { color: mutedColor, font: { size: 10 } },
+            grid: { display: false },
           },
           y: {
             ticks: { color: mutedColor, font: { size: 10 } },
@@ -231,6 +213,7 @@ export class StocksWidget extends BaseWidget {
           },
         },
       },
+      plugins: [valueLabelPlugin],
     });
   }
 
@@ -281,7 +264,6 @@ export class StocksWidget extends BaseWidget {
     if (newSettings.symbols !== undefined || newSettings.displayMode !== undefined) {
       this.cache = null;
       this.cacheExpiry = 0;
-      this.candleCache = null;
       await this.fetchAndRender();
     }
 
