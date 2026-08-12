@@ -1,6 +1,6 @@
 import { getWidgetRegistry, generateWidgetId } from './widgetRegistry.js';
-import { getGrid } from './grid.js';
 import { saveWidgetSettings } from '../db.js';
+import { addWidget as addWidgetToLayout } from './grid.js';
 
 let onWidgetCreate = null;
 
@@ -59,15 +59,12 @@ function getWidgetDescription(type) {
 }
 
 async function addWidget(type) {
-  console.log('[widgetPicker] addWidget called with type:', type);
   closeModal();
 
   const id = generateWidgetId();
-  console.log('[widgetPicker] generated id:', id);
-  
+
   const registry = getWidgetRegistry();
   const def = registry[type];
-  console.log('[widgetPicker] widget definition:', def);
 
   const defaultSettings = { ...def.settingsSchema };
   for (const key of Object.keys(defaultSettings)) {
@@ -75,32 +72,9 @@ async function addWidget(type) {
       defaultSettings[key] = defaultSettings[key].default;
     }
   }
-  console.log('[widgetPicker] defaultSettings:', defaultSettings);
 
   await saveWidgetSettings(id, { ...defaultSettings, type });
-  console.log('[widgetPicker] saved widget settings');
-
-  const grid = getGrid();
-  console.log('[widgetPicker] grid:', grid);
-  if (!grid) {
-    console.error('[widgetPicker] No grid available!');
-    return;
-  }
-
-  const el = document.createElement('div');
-  el.className = 'grid-stack-item-content widget-card';
-  el.dataset.widgetId = id;
-  el.dataset.widgetType = type;
-  console.log('[widgetPicker] created element:', el);
-
-  const result = grid.addWidget(el, {
-    w: def.defaultSize.w,
-    h: def.defaultSize.h,
-    minW: def.minSize.w,
-    minH: def.minSize.h,
-    id: id,
-  });
-  console.log('[widgetPicker] grid.addWidget result:', result);
+  addWidgetToLayout(type, id, { ...defaultSettings, type });
 }
 
 function closeModal() {

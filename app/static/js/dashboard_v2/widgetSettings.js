@@ -1,4 +1,5 @@
 import { deleteWidgetSettings } from '../db.js';
+import { removeWidget } from './grid.js';
 
 let currentWidget = null;
 let onGlobalSettingsClick = null;
@@ -219,18 +220,9 @@ async function deleteWidget() {
 
   if (!confirm('Delete this widget? This cannot be undone.')) return;
 
-  const { getGrid } = await import('./grid.js');
-  const grid = getGrid();
-
-  if (grid && currentWidget.element) {
-    const gridItem = currentWidget.element.closest('.grid-stack-item');
-    if (gridItem) {
-      grid.removeWidget(gridItem);
-    }
-  }
-
-  await deleteWidgetSettings(currentWidget.id);
-  currentWidget.destroy();
+  const id = currentWidget.id;
+  await deleteWidgetSettings(id);
+  removeWidget(id);
   currentWidget = null;
   closeModal();
 }

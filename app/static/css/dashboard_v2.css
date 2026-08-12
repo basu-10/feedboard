@@ -1,6 +1,7 @@
 :root {
-  --gs-cell-height: 80px;
-  --gs-margin: 10px;
+  --grid-columns: 12;
+  --grid-row-height: 80px;
+  --grid-gap: 10px;
 }
 
 .v2-toolbar {
@@ -39,13 +40,20 @@
   flex: 1;
   padding: 1rem;
   overflow: auto;
+  min-height: 0;
 }
 
-.grid-stack {
-  background: transparent;
+.css-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  grid-auto-rows: var(--grid-row-height);
+  gap: var(--grid-gap);
+  align-content: start;
+  min-height: 200px;
 }
 
 .widget-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -62,11 +70,7 @@
   padding: 0.5rem 0.75rem;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  cursor: grab;
-}
-
-.widget-header:active {
-  cursor: grabbing;
+  cursor: default;
 }
 
 .widget-title {
@@ -503,25 +507,57 @@
   color: var(--accent);
 }
 
-/* Gridstack overrides */
-.grid-stack-item-content {
-  border-radius: 8px;
-  width: 100%;
-  display: flex !important;
-  flex-direction: column !important;
+/* Resize handles (custom, no GridStack) */
+.resize-handle {
+  position: absolute;
+  z-index: 5;
+  background: transparent;
 }
 
-.grid-stack-item {
-  overflow: visible !important;
+.resize-e {
+  top: 8px;
+  bottom: 8px;
+  right: 0;
+  width: 8px;
+  cursor: ew-resize;
 }
 
-.grid-stack-item.ui-draggable-dragging {
-  z-index: 1000;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+.resize-s {
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 8px;
+  cursor: ns-resize;
 }
 
-.grid-stack-item.resizing {
-  z-index: 1000;
+.resize-se {
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+}
+
+.resize-se::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.widget-card:hover .resize-se::after {
+  opacity: 0.8;
+}
+
+body.resizing {
+  user-select: none;
+  cursor: inherit;
 }
 
 /* Responsive */

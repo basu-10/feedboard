@@ -11,6 +11,19 @@ export class BaseWidget {
     this.headerEl = null;
     this.timers = [];
     this.eventListeners = [];
+    this._structureBuilt = false;
+  }
+
+  buildElement() {
+    this.element = document.createElement('div');
+    this.element.className = 'widget-card';
+    this.element.dataset.widgetId = this.id;
+    this.element.dataset.widgetType = this.constructor.widgetType;
+    this.element.innerHTML = this.getHTML();
+    this.bindElements();
+    this.bindEvents();
+    this._structureBuilt = true;
+    return this.element;
   }
 
   static getDefaultSettings() {
@@ -47,12 +60,21 @@ export class BaseWidget {
       overflow: elStyles.overflow,
     });
 
-    this.element.innerHTML = this.getHTML();
-    console.log('[BaseWidget] HTML set, binding elements...');
-    this.bindElements();
-    console.log('[BaseWidget] Elements bound, binding events...');
-    this.bindEvents();
-    console.log('[BaseWidget] Events bound, calling onRender...');
+    if (!this._structureBuilt) {
+      this.element.innerHTML = this.getHTML();
+      console.log('[BaseWidget] HTML set, binding elements...');
+      this.bindElements();
+      console.log('[BaseWidget] Elements bound, binding events...');
+      this.bindEvents();
+      this._structureBuilt = true;
+    } else {
+      console.log('[BaseWidget] Structure exists, clearing content only...');
+      if (this.contentEl) {
+        this.contentEl.innerHTML = '';
+      }
+    }
+
+    console.log('[BaseWidget] Calling onRender...');
     await this.onRender();
     console.log('[BaseWidget] onRender completed');
   }

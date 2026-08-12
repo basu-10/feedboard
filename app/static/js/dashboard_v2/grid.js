@@ -1,117 +1,150 @@
-let grid = null;
-let saveLayoutTimer = null;
+import { getWidgetRegistry, createWidget } from './widgetRegistry.js';
+import { loadGridLayout, saveGridLayout, loadAllWidgetSettings } from '../db.js';
 
-export async function initGrid(onWidgetAdd, onWidgetRemove) {
-  console.log('[grid] initGrid called');
-  if (!window.GridStack) {
-    console.error('[grid] GridStack not loaded!');
-    throw new Error('GridStack not loaded');
-  }
+const COLUMNS = 12;
+const ROW_HEIGHT = 80;
+const GAP = 10;
+const MAX_COLS = 12;
+const MAX_ROWS = 50;
 
-  const gridEl = document.getElementById('grid');
-  console.log('[grid] grid element:', gridEl);
-  if (!gridEl) {
-    console.error('[grid] Grid element not found!');
-    throw new Error('Grid element not found');
-  }
+let container = null;
+let onWidgetSettings = null;
+let saveTimer = null;
+let suppressPersist = false;
+const widgets = new Map(); // id -> { widget, el, w, h, minW, minH }
 
-  grid = GridStack.init({
-    column: 12,
-    cellHeight: 'auto',
-    margin: 10,
-    dragHandle: '.widget-header',
-    resizeHandles: 'e, se, s, sw, w',
-    animate: true,
-    acceptWidgets: true,
-    removable: true,
-    removeTimeout: 100,
-  }, gridEl);
-  console.log('[grid] GridStack initialized:', grid);
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
 
-  grid.on('change', debouncedSaveLayout);
-  grid.on('added', (event, items) => {
-    console.log('[grid] "added" event fired, items:', items);
-    if (onWidgetAdd) onWidgetAdd(items);
-  });
-  grid.on('removed', (event, items) => {
-    console.log('[grid] "removed" event fired, items:', items);
-    if (onWidgetRemove) onWidgetRemove(items);
-  });
-
+export async function initGrid(settingsCallback) {
+  container = document.getElementById('grid');
+  if (!container) throw new Error('Grid container #grid not found');
+  onWidgetSettings = settingsCallback;
   await loadPersistedLayout();
-  console.log('[grid] Layout loaded, returning grid');
-  return grid;
+  return layoutApi;
 }
 
 export function getGrid() {
-  return grid;
+  return layoutApi;
+}
+
+export async function addWidget(type, id, settings) {
+  const def = getWidgetRegistry()[type];
+  if (!def) {
+    console.warn('[layout] Unknown widget type:', type);
+    return null;
+  }
+
+  const minW = def.minSize?.w ?? 2;
+  const minH = def.minSize?.h ?? 2;
+  const w = clamp(settings.w ?? def.defaultSize.w, minW, MAX_COLS);
+  const h = clamp(settings.h ?? def.defaultSize.h, minH, MAX_ROWS);
+
+  const widget = await createWidget(type, id, layoutApi, settings, onWidgetSettings);
+  const el = widget.buildElement();
+  el.style.gridColumn = `span ${w}`;
+  el.style.gridRow = `span ${h}`;
+
+  container.appendChild(el);
+  widget.element = el;
+  attachResizeHandles(widget, el, minW, minH);
+
+  widgets.set(id, { widget, el, w, h, minW, minH });
+  widget.onRender();
+  persistLayout();
+  return widget;
+}
+
+export function removeWidget(id) {
+  const entry = widgets.get(id);
+  if (!entry) return;
+  entry.widget.destroy();
+  widgets.delete(id);
+  persistLayout();
 }
 
 async function loadPersistedLayout() {
-  const { loadGridLayout, loadWidgetSettings } = await import('../db.js');
-
   const layout = await loadGridLayout();
   if (!layout || !layout.length) return;
 
-  const widgetsData = await loadAllWidgetSettings();
-  const widgetsById = new Map(widgetsData.map(w => [w.id, w]));
-
+  const settingsMap = new Map((await loadAllWidgetSettings()).map(s => [s.id, s]));
+  suppressPersist = true;
   for (const item of layout) {
-    const widgetData = widgetsById.get(item.id);
-    if (widgetData) {
-      addWidgetToGrid(item, widgetData);
+    const settings = settingsMap.get(item.id);
+    if (settings) {
+      await addWidget(settings.type, item.id, { ...settings, w: item.w, h: item.h });
     }
+  }
+  suppressPersist = false;
+}
+
+function attachResizeHandles(widget, el, minW, minH) {
+  const directions = ['e', 's', 'se'];
+  for (const dir of directions) {
+    const handle = document.createElement('div');
+    handle.className = `resize-handle resize-${dir}`;
+    handle.dataset.dir = dir;
+    el.appendChild(handle);
+    handle.addEventListener('mousedown', (e) => startResize(e, widget, el, dir, minW, minH));
   }
 }
 
-function addWidgetToGrid(layoutItem, widgetData) {
-  if (!grid) return;
+function startResize(e, widget, el, dir, minW, minH) {
+  e.preventDefault();
+  e.stopPropagation();
 
-  const el = document.createElement('div');
-  el.className = 'grid-stack-item-content widget-card';
-  el.dataset.widgetId = layoutItem.id;
-  el.dataset.widgetType = widgetData.type;
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const entry = widgets.get(widget.id);
+  const startW = entry.w;
+  const startH = entry.h;
+  const colUnit = (container.clientWidth - GAP * (COLUMNS - 1)) / COLUMNS + GAP;
+  const rowUnit = ROW_HEIGHT + GAP;
 
-  grid.addWidget(el, {
-    x: layoutItem.x,
-    y: layoutItem.y,
-    w: layoutItem.w,
-    h: layoutItem.h,
-    minW: layoutItem.minW,
-    minH: layoutItem.minH,
-    id: layoutItem.id,
-  });
+  function onMove(ev) {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    let w = startW;
+    let h = startH;
+    if (dir.includes('e')) w = Math.round((startW * colUnit + dx) / colUnit);
+    if (dir.includes('s')) h = Math.round((startH * rowUnit + dy) / rowUnit);
+    w = clamp(w, minW, MAX_COLS);
+    h = clamp(h, minH, MAX_ROWS);
+    entry.w = w;
+    entry.h = h;
+    el.style.gridColumn = `span ${w}`;
+    el.style.gridRow = `span ${h}`;
+  }
+
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.body.classList.remove('resizing');
+    persistLayout();
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  document.body.classList.add('resizing');
 }
 
-function debouncedSaveLayout() {
-  clearTimeout(saveLayoutTimer);
-  saveLayoutTimer = setTimeout(saveLayout, 300);
+function persistLayout() {
+  if (suppressPersist) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const order = [...container.children]
+      .filter(el => el.dataset.widgetId)
+      .map(el => {
+        const entry = widgets.get(el.dataset.widgetId);
+        return { id: el.dataset.widgetId, w: entry.w, h: entry.h };
+      });
+    saveGridLayout(order);
+  }, 200);
 }
 
-async function saveLayout() {
-  if (!grid) return;
-
-  const { saveGridLayout } = await import('../db.js');
-  const layout = grid.save();
-  await saveGridLayout(layout);
-}
-
-export function addWidget(widgetEl, options) {
-  if (!grid) return null;
-  return grid.addWidget(widgetEl, options);
-}
-
-export function removeWidget(widgetEl) {
-  if (!grid) return;
-  grid.removeWidget(widgetEl);
-}
-
-export function getWidgetElements() {
-  if (!grid) return [];
-  return grid.engine.nodes.map(node => node.el);
-}
-
-async function loadAllWidgetSettings() {
-  const { loadAllWidgetSettings: loadAll } = await import('../db.js');
-  return loadAll();
-}
+const layoutApi = {
+  addWidget,
+  removeWidget,
+  getContainer: () => container,
+};

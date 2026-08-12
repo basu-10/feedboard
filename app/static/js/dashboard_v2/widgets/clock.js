@@ -21,6 +21,10 @@ export class ClockWidget extends BaseWidget {
   }
 
   async onRender() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
     this.buildClockDOM();
     this.updateClock();
     this.timer = setInterval(() => this.updateClock(), 1000);
