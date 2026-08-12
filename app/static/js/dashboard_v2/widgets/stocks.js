@@ -24,6 +24,7 @@ export class StocksWidget extends BaseWidget {
     return {
       symbols: ['AAPL', 'GOOGL', 'TSLA', 'MSFT', 'NVDA'],
       displayMode: 'table',
+      chartMetric: 'price',
       refreshInterval: 60,
     };
   }
@@ -131,9 +132,22 @@ export class StocksWidget extends BaseWidget {
       return;
     }
 
+    const metric = this.settings.chartMetric === 'changePct' ? 'changePct' : 'price';
     const labels = valid.map(q => q.symbol);
-    const data = valid.map(q => q.c);
-    const colors = valid.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
+    const values = valid.map(q => {
+      if (metric === 'changePct') {
+        const change = q.c - q.pc;
+        return q.pc ? Number(((change / q.pc) * 100).toFixed(2)) : 0;
+      }
+      return Number(q.c.toFixed(2));
+    });
+    const colors = valid.map(q => {
+      if (metric === 'changePct') {
+        const change = q.c - q.pc;
+        return change >= 0 ? '#22c55e' : '#ef4444';
+      }
+      return CHART_COLORS[valid.indexOf(q) % CHART_COLORS.length];
+    });
 
     this.contentEl.innerHTML = `
       <div class="stocks-chart-wrap">
@@ -162,7 +176,8 @@ export class StocksWidget extends BaseWidget {
           ctx.fillStyle = textColor;
           ctx.font = '11px ui-sans-serif, system-ui, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(value.toFixed(2), bar.x, bar.y - 6);
+          const suffix = metric === 'changePct' ? '%' : '';
+          ctx.fillText(`${value.toFixed(2)}${suffix}`, bar.x, bar.y - 6);
         });
       },
     };
@@ -173,8 +188,8 @@ export class StocksWidget extends BaseWidget {
         labels,
         datasets: [
           {
-            label: 'Price',
-            data,
+            label: metric === 'changePct' ? 'Change %' : 'Price',
+            data: values,
             backgroundColor: colors,
             borderColor: 'rgba(255,255,255,0.08)',
             borderWidth: 1,
@@ -194,6 +209,9 @@ export class StocksWidget extends BaseWidget {
                 const change = q.c - q.pc;
                 const pct = q.pc ? ((change / q.pc) * 100).toFixed(2) : '0.00';
                 const sign = change >= 0 ? '+' : '';
+                if (metric === 'changePct') {
+                  return [`${q.symbol}: ${sign}${pct}%`];
+                }
                 return [
                   `Price: ${q.c.toFixed(2)}`,
                   `Change: ${sign}${change.toFixed(2)} (${sign}${pct}%)`,
@@ -208,7 +226,11 @@ export class StocksWidget extends BaseWidget {
             grid: { display: false },
           },
           y: {
-            ticks: { color: mutedColor, font: { size: 10 } },
+            ticks: {
+              color: mutedColor,
+              font: { size: 10 },
+              callback: (value) => (metric === 'changePct' ? `${value}%` : value),
+            },
             grid: { color: borderColor },
           },
         },
@@ -261,7 +283,11 @@ export class StocksWidget extends BaseWidget {
     const oldInterval = this.settings.refreshInterval;
     await super.setSettings(newSettings);
 
-    if (newSettings.symbols !== undefined || newSettings.displayMode !== undefined) {
+    if (
+      newSettings.symbols !== undefined ||
+      newSettings.displayMode !== undefined ||
+      newSettings.chartMetric !== undefined
+    ) {
       this.cache = null;
       this.cacheExpiry = 0;
       await this.fetchAndRender();

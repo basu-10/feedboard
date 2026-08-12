@@ -89,6 +89,12 @@ const WIDGET_REGISTRY = {
         options: ['table', 'chart'],
         default: 'table',
       },
+      chartMetric: {
+        type: 'radio',
+        label: 'Chart Value',
+        options: ['price', 'changePct'],
+        default: 'price',
+      },
       refreshInterval: {
         type: 'number',
         label: 'Refresh Interval (seconds)',
@@ -115,6 +121,18 @@ const WIDGET_REGISTRY = {
         label: 'Currency',
         options: ['usd', 'eur', 'gbp'],
         default: 'usd',
+      },
+      displayMode: {
+        type: 'radio',
+        label: 'Display Mode',
+        options: ['table', 'chart'],
+        default: 'table',
+      },
+      chartMetric: {
+        type: 'radio',
+        label: 'Chart Value',
+        options: ['price', 'changePct'],
+        default: 'price',
       },
       refreshInterval: {
         type: 'number',

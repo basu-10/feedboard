@@ -60,11 +60,14 @@ function getWidgetSettingsSchema(type) {
     stocks: {
       symbols: { type: 'array', label: 'Stock Symbols', itemType: 'text' },
       displayMode: { type: 'radio', label: 'Display Mode', options: ['table', 'chart'] },
+      chartMetric: { type: 'radio', label: 'Chart Value', options: ['price', 'changePct'] },
       refreshInterval: { type: 'number', label: 'Refresh Interval (seconds)', min: 30, max: 300 },
     },
     crypto: {
       coins: { type: 'array', label: 'Coins', itemType: 'text' },
       currency: { type: 'select', label: 'Currency', options: ['usd', 'eur', 'gbp'] },
+      displayMode: { type: 'radio', label: 'Display Mode', options: ['table', 'chart'] },
+      chartMetric: { type: 'radio', label: 'Chart Value', options: ['price', 'changePct'] },
       refreshInterval: { type: 'number', label: 'Refresh Interval (seconds)', min: 60, max: 300 },
     },
   };
