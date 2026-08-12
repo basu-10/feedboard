@@ -36,7 +36,7 @@ export class BaseWidget {
 
   async setSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings };
-    await saveWidgetSettings(this.id, { ...this.settings, type: this.constructor.widgetType });
+    await saveWidgetSettings(this.id, { id: this.id, ...this.settings, type: this.constructor.widgetType });
     if (this.element) {
       await this.render();
     }

@@ -1,5 +1,5 @@
 import { getWidgetRegistry, createWidget } from './widgetRegistry.js';
-import { loadGridLayout, saveGridLayout, loadAllWidgetSettings } from '../db.js';
+import { loadGridLayout, saveGridLayout, loadWidgetSettings } from '../db.js';
 
 const COLUMNS = 12;
 const ROW_HEIGHT = 80;
@@ -68,10 +68,9 @@ async function loadPersistedLayout() {
   const layout = await loadGridLayout();
   if (!layout || !layout.length) return;
 
-  const settingsMap = new Map((await loadAllWidgetSettings()).map(s => [s.id, s]));
   suppressPersist = true;
   for (const item of layout) {
-    const settings = settingsMap.get(item.id);
+    const settings = await loadWidgetSettings(item.id);
     if (settings) {
       await addWidget(settings.type, item.id, { ...settings, w: item.w, h: item.h });
     }

@@ -15,13 +15,29 @@
     </div>
     <div class="toolbar-center"></div>
     <div class="toolbar-right">
-      <button class="btn" id="addWidgetBtn" aria-label="Add Widget" title="Add Widget">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Add Widget
-      </button>
+       <button class="btn" id="addWidgetBtn" aria-label="Add Widget" title="Add Widget">
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           <line x1="12" y1="5" x2="12" y2="19"></line>
+           <line x1="5" y1="12" x2="19" y2="12"></line>
+         </svg>
+         Add Widget
+       </button>
+       <button class="btn" id="saveLayoutBtn" aria-label="Save Layout" title="Save Layout">
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+           <polyline points="7 10 12 15 17 10"></polyline>
+           <line x1="12" y1="15" x2="12" y2="3"></line>
+         </svg>
+         Save Layout
+       </button>
+       <button class="btn" id="loadLayoutBtn" aria-label="Load Layout" title="Load Layout">
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+           <polyline points="17 10 12 15 7 10"></polyline>
+           <line x1="12" y1="15" x2="12" y2="3"></line>
+         </svg>
+         Load Layout
+       </button>
       <button class="btn" id="globalSettingsBtn" aria-label="Settings" title="Settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -61,6 +77,29 @@
       <div class="widget-picker-grid"></div>
       <div class="modal-actions">
         <button type="button" class="btn close-settings-btn" aria-label="Cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layout Modal -->
+  <div class="modal-overlay" id="layoutModal">
+    <div class="modal" style="max-width: 480px;">
+      <h2>Layout Manager</h2>
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem; font-weight: 700;">Save Current Layout</h3>
+        <button type="button" class="btn" id="downloadLayoutBtn" style="background: var(--accent); color: #fff; width: 100%; justify-content: center;">Download Layout as JSON</button>
+      </div>
+      <hr style="border-color: var(--border); margin: 1rem 0;">
+      <div>
+        <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem; font-weight: 700;">Load Layout</h3>
+        <div class="form-group">
+          <label for="loadLayoutInput">Select Layout File</label>
+          <input type="file" id="loadLayoutInput" accept=".json" style="padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; width: 100%;">
+        </div>
+        <button type="button" class="btn" id="uploadLayoutBtn" style="background: var(--accent); color: #fff; width: 100%; justify-content: center;">Upload & Apply Layout</button>
+      </div>
+      <div class="modal-actions" style="margin-top: 1.25rem; justify-content: flex-end;">
+        <button type="button" class="btn close-layout-btn">Close</button>
       </div>
     </div>
   </div>

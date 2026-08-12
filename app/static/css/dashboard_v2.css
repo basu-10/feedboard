@@ -589,6 +589,43 @@ body.resizing {
   cursor: inherit;
 }
 
+/* Layout Modal */
+#layoutModal .modal > div[style] h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+#layoutModal .form-group input[type="file"] {
+  padding: 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+}
+
+#layoutModal .form-group input[type="file"]::file-selector-button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+#layoutModal .form-group input[type="file"]::file-selector-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .v2-toolbar {

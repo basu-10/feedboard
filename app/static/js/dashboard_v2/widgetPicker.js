@@ -73,7 +73,7 @@ async function addWidget(type) {
     }
   }
 
-  await saveWidgetSettings(id, { ...defaultSettings, type });
+  await saveWidgetSettings(id, { id, ...defaultSettings, type });
   addWidgetToLayout(type, id, { ...defaultSettings, type });
 }
 

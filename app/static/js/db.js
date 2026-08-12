@@ -39,6 +39,8 @@ function openDB() {
   return _dbPromise;
 }
 
+export { openDB };
+
 async function idbGet(key, storeName = STORE_NAME) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
