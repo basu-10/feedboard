@@ -6,8 +6,8 @@ const DEFAULT_REFRESH_INTERVAL = (() => {
   return Number.isFinite(env) && env > 0 ? env : 600;
 })();
 
-async function geocodeLocation(query) {
-  if (!query || !query.trim()) return null;
+export async function geocodeLocation(query) {
+  if (!query || !query.trim()) return { ok: false, error: 'Enter a location.' };
   const url = `${GEOCODE_URL}?name=${encodeURIComponent(query.trim())}&count=1&language=en&format=json`;
   try {
     const res = await fetch(url, { cache: 'no-store' });
@@ -17,16 +17,13 @@ async function geocodeLocation(query) {
     const data = await res.json();
     if (data.results && data.results.length) {
       const r = data.results[0];
-      return {
-        lat: r.latitude,
-        lon: r.longitude,
-        name: [r.name, r.admin1, r.country].filter(Boolean).join(', '),
-      };
+      const name = [r.name, r.admin1, r.country].filter(Boolean).join(', ');
+      return { ok: true, name, lat: r.latitude, lon: r.longitude };
     }
-    return null;
+    return { ok: false, error: 'Location not found.' };
   } catch (err) {
     console.error('Geocoding failed', err);
-    return null;
+    return { ok: false, error: 'Geocoding request failed.' };
   }
 }
 
@@ -61,7 +58,7 @@ export class WeatherWidget extends BaseWidget {
   }
 
   async fetchAndRender() {
-    if (!this.settings.location || !this.settings.location.trim()) {
+    if (!this.hasValidLocation()) {
       this.showError('Set a location in widget settings.');
       return;
     }
@@ -69,8 +66,8 @@ export class WeatherWidget extends BaseWidget {
     this.showLoading();
     try {
       const geo = await this.getGeo();
-      if (!geo) {
-        this.showError('Location not found.');
+      if (!geo || !geo.ok) {
+        this.showError(geo?.error || 'Location not found.');
         return;
       }
 
@@ -107,8 +104,16 @@ export class WeatherWidget extends BaseWidget {
     return result;
   }
 
+  hasValidLocation() {
+    return !!(this.settings.location && this.settings.location.trim());
+  }
+
   render(data, geo) {
     if (!this.contentEl) return;
+    if (!data || !data.current) {
+      this.showError('No weather data available.');
+      return;
+    }
 
     const cur = data.current;
     const code = WEATHER_CODES[cur.weather_code] || { icon: '🌡️', desc: 'Unknown' };

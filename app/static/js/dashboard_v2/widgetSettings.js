@@ -39,7 +39,75 @@ export function openWidgetSettings(widget) {
 
   populateTimezoneOptions(widget.settings?.timezone);
 
+  if (widget.constructor.widgetType === 'weather') {
+    addWeatherLocationCheck(form, effectiveSettings.location);
+  }
+
   modal.classList.add('active');
+}
+
+let locationChecked = false;
+
+function addWeatherLocationCheck(form, currentLocation) {
+  locationChecked = !!(currentLocation && currentLocation.trim());
+
+  const wrap = document.createElement('div');
+  wrap.className = 'weather-location-check';
+  wrap.innerHTML = `
+    <button type="button" class="btn check-location-btn">Check location</button>
+    <span class="weather-location-status"></span>
+  `;
+  form.appendChild(wrap);
+
+  const btn = wrap.querySelector('.check-location-btn');
+  const status = wrap.querySelector('.weather-location-status');
+
+  if (locationChecked) {
+    status.textContent = '✓ Saved location';
+    status.className = 'weather-location-status ok';
+  }
+
+  btn.addEventListener('click', async () => {
+    const input = form.querySelector('#setting-location');
+    const query = input ? input.value.trim() : '';
+    if (!query) {
+      status.textContent = 'Enter a location first.';
+      status.className = 'weather-location-status error';
+      locationChecked = false;
+      return;
+    }
+    btn.disabled = true;
+    status.textContent = 'Checking…';
+    status.className = 'weather-location-status';
+    try {
+      const { geocodeLocation } = await import('./widgets/weather.js');
+      const result = await geocodeLocation(query);
+      if (result.ok) {
+        status.textContent = `✓ ${result.name}`;
+        status.className = 'weather-location-status ok';
+        locationChecked = true;
+      } else {
+        status.textContent = `✗ ${result.error}`;
+        status.className = 'weather-location-status error';
+        locationChecked = false;
+      }
+    } catch (err) {
+      status.textContent = '✗ Could not verify location.';
+      status.className = 'weather-location-status error';
+      locationChecked = false;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  const input = form.querySelector('#setting-location');
+  if (input) {
+    input.addEventListener('input', () => {
+      locationChecked = false;
+      status.textContent = '';
+      status.className = 'weather-location-status';
+    });
+  }
 }
 
 function getWidgetSettingsSchema(type) {
@@ -242,6 +310,19 @@ async function saveSettings() {
     if (settings[key] === 'true') settings[key] = true;
     else if (settings[key] === 'false') settings[key] = false;
     else if (!isNaN(settings[key]) && settings[key] !== '') settings[key] = Number(settings[key]);
+  }
+
+  if (currentWidget.constructor.widgetType === 'weather') {
+    const location = (settings.location || '').trim();
+    const hadLocation = !!(currentWidget.settings?.location && currentWidget.settings.location.trim());
+    if (location && (!locationChecked || !hadLocation)) {
+      alert('Please click "Check location" to verify the location before saving.');
+      return;
+    }
+    if (!location && !hadLocation) {
+      alert('Please enter and verify a location before saving.');
+      return;
+    }
   }
 
   await currentWidget.setSettings(settings);

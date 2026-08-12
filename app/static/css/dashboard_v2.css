@@ -553,6 +553,30 @@
   text-align: center;
 }
 
+.weather-location-check {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.weather-location-check .check-location-btn {
+  flex: 0 0 auto;
+}
+
+.weather-location-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.weather-location-status.ok {
+  color: #22c55e;
+}
+
+.weather-location-status.error {
+  color: #ef4444;
+}
+
 /* Widget Picker Modal */
 .widget-picker-grid {
   display: grid;
