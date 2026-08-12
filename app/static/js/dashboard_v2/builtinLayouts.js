@@ -57,6 +57,7 @@ const FLAGSHIP_LAYOUT = {
         customFeeds: [],
         rotationSpeed: 20,
         autoRotate: 1,
+        refreshInterval: 600,
       },
     },
     {

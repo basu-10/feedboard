@@ -1,6 +1,11 @@
 import { BaseWidget } from './base.js';
 import { buildRssProxyUrl, buildRss2JsonUrl, TOPIC_FEEDS, TOPIC_LABELS } from '../../config.js';
 
+const DEFAULT_REFRESH_INTERVAL = (() => {
+  const env = window.V2_REFRESH_INTERVAL_SECONDS;
+  return Number.isFinite(env) && env > 0 ? env : 600;
+})();
+
 export class NewsWidget extends BaseWidget {
   static widgetType = 'news';
   static widgetName = 'News';
@@ -11,6 +16,7 @@ export class NewsWidget extends BaseWidget {
     this.currentIndex = 0;
     this.rotationTimer = null;
     this.progressTimer = null;
+    this.refreshTimer = null;
     this.progressStartTime = 0;
     this.isPaused = false;
   }
@@ -22,6 +28,7 @@ export class NewsWidget extends BaseWidget {
       customFeeds: [],
       rotationSpeed: 8,
       autoRotate: true,
+      refreshInterval: DEFAULT_REFRESH_INTERVAL,
     };
   }
 
@@ -32,6 +39,14 @@ export class NewsWidget extends BaseWidget {
     if (this.settings.autoRotate) {
       this.startRotation();
     }
+    this.startAutoRefresh();
+  }
+
+  startAutoRefresh() {
+    this.refreshTimer = setInterval(() => {
+      this.fetchNews({ isRefresh: true });
+    }, this.settings.refreshInterval * 1000);
+    this.timers.push(this.refreshTimer);
   }
 
   getActiveFeeds() {
@@ -360,6 +375,7 @@ export class NewsWidget extends BaseWidget {
   async setSettings(newSettings) {
     const oldAutoRotate = this.settings.autoRotate;
     const oldRotationSpeed = this.settings.rotationSpeed;
+    const oldRefreshInterval = this.settings.refreshInterval;
     await super.setSettings(newSettings);
 
     if (newSettings.mode !== undefined || newSettings.category !== undefined || newSettings.customFeeds !== undefined) {
@@ -380,10 +396,16 @@ export class NewsWidget extends BaseWidget {
         this.startRotation();
       }
     }
+
+    if (newSettings.refreshInterval !== undefined && newSettings.refreshInterval !== oldRefreshInterval) {
+      clearInterval(this.refreshTimer);
+      this.startAutoRefresh();
+    }
   }
 
   destroy() {
     clearInterval(this.rotationTimer);
+    clearInterval(this.refreshTimer);
     cancelAnimationFrame(this.progressTimer);
     super.destroy();
   }

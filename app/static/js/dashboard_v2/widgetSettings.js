@@ -124,6 +124,7 @@ function getWidgetSettingsSchema(type) {
       customFeeds: { type: 'array', label: 'Custom Feeds', itemFields: { id: 'text', url: 'url' } },
       rotationSpeed: { type: 'number', label: 'Rotation Speed (seconds)', min: 3, max: 60 },
       autoRotate: { type: 'checkbox', label: 'Auto Rotate' },
+      refreshInterval: { type: 'number', label: 'Refresh Interval (seconds)', min: 300, max: 3600 },
     },
     stocks: {
       symbols: { type: 'array', label: 'Stock Symbols', itemType: 'text' },
