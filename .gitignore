@@ -1,3 +1,6 @@
 .kilo
 __pycache__/
 feedboard-data/configs/.env
+.impeccable
+.codex
+.agents
