@@ -1,5 +1,5 @@
 import { BaseWidget } from './base.js';
-import { buildRss2JsonUrl, TOPIC_FEEDS, TOPIC_LABELS } from '../../config.js';
+import { buildRssProxyUrl, buildRss2JsonUrl, TOPIC_FEEDS, TOPIC_LABELS } from '../../config.js';
 
 export class NewsWidget extends BaseWidget {
   static widgetType = 'news';
@@ -107,21 +107,43 @@ export class NewsWidget extends BaseWidget {
   }
 
   async fetchFeed(feed) {
-    const url = buildRss2JsonUrl(feed.url);
     try {
-      const response = await fetch(`${url}&_=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} ${response.statusText}`);
+      return await this.fetchViaProxy(feed);
+    } catch (proxyError) {
+      console.warn(`[Proxy failed, trying rss2json] ${feed.topic} :: ${feed.url}`, proxyError);
+      try {
+        return await this.fetchViaRss2Json(feed);
+      } catch (error) {
+        console.error(`[Feed fetch failed] ${feed.topic} :: ${feed.url}`, error);
+        throw error;
       }
-      const data = await response.json();
-      if (data.status === 'ok' && data.items.length > 0) {
-        return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
-      }
-      return [];
-    } catch (error) {
-      console.error(`[Feed fetch failed] ${feed.topic} :: ${feed.url}`, error);
-      throw error;
     }
+  }
+
+  async fetchViaProxy(feed) {
+    const url = `${buildRssProxyUrl(feed.url)}&_=${Date.now()}`;
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    if (data.status === 'ok' && Array.isArray(data.items) && data.items.length > 0) {
+      return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
+    }
+    return [];
+  }
+
+  async fetchViaRss2Json(feed) {
+    const url = `${buildRss2JsonUrl(feed.url)}&_=${Date.now()}`;
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    if (data.status === 'ok' && data.items.length > 0) {
+      return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
+    }
+    return [];
   }
 
   buildRoundRobinQueue(feedsItems) {

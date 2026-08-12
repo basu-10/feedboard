@@ -1,6 +1,15 @@
 // System Configurations
 export const FETCH_INTERVAL_MS = 5 * 60 * 1000; // Background refresh every 5 minutes
+
+// Primary feed source: our own backend proxy (no third-party dependency, no CORS).
+export const RSS_PROXY_ENDPOINT = '/api/rss?rss_url=';
+
+// Fallback (used only if the proxy fails): the rss2json.com service.
 export const RSS2JSON_ENDPOINT = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+export function buildRssProxyUrl(feedUrl) {
+  return `${RSS_PROXY_ENDPOINT}${encodeURIComponent(feedUrl)}`;
+}
 
 export function buildRss2JsonUrl(feedUrl) {
   const apiKey = typeof window !== 'undefined' ? window.RSS2JSON_API_KEY : '';

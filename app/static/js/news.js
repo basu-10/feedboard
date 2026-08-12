@@ -1,5 +1,5 @@
 // Feed fetching, round-robin queue, article rendering
-import { buildRss2JsonUrl } from './config.js';
+import { buildRssProxyUrl, buildRss2JsonUrl } from './config.js';
 import { TOPIC_FEEDS, TOPIC_LABELS } from './config.js';
 import { state } from './store.js';
 
@@ -52,21 +52,44 @@ export function shuffle(arr) {
 }
 
 // Fetch a single feed and return its items tagged with the source topic
+// Primary path: our own backend proxy. Falls back to rss2json.com on failure.
+async function fetchViaProxy(feed) {
+  const url = `${buildRssProxyUrl(feed.url)}&_=${Date.now()}`;
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+  }
+  const data = await response.json();
+  if (data.status === 'ok' && Array.isArray(data.items) && data.items.length > 0) {
+    return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
+  }
+  return [];
+}
+
+async function fetchViaRss2Json(feed) {
+  const url = `${buildRss2JsonUrl(feed.url)}&_=${Date.now()}`;
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+  }
+  const data = await response.json();
+  if (data.status === 'ok' && data.items.length > 0) {
+    return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
+  }
+  return [];
+}
+
 export async function fetchFeed(feed) {
-  const url = buildRss2JsonUrl(feed.url);
   try {
-    const response = await fetch(`${url}&_=${Date.now()}`, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} ${response.statusText}`);
+    return await fetchViaProxy(feed);
+  } catch (proxyError) {
+    console.warn(`[Proxy failed, trying rss2json] ${feed.topic} :: ${feed.url}`, proxyError);
+    try {
+      return await fetchViaRss2Json(feed);
+    } catch (error) {
+      console.error(`[Feed fetch failed] ${feed.topic} :: ${feed.url}`, error);
+      throw error;
     }
-    const data = await response.json();
-    if (data.status === 'ok' && data.items.length > 0) {
-      return data.items.map(item => ({ ...item, sourceTopic: feed.topic }));
-    }
-    return [];
-  } catch (error) {
-    console.error(`[Feed fetch failed] ${feed.topic} :: ${feed.url}`, error);
-    throw error;
   }
 }
 
