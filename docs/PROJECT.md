@@ -21,7 +21,7 @@ Feedboard is a Flask-based web application with two dashboard versions:
 ## Directory Structure
 
 ```
-mydash/
+feedboard/
 ├── app.py                    # Flask entry point
 ├── wsgi.py                   # WSGI entry point for production
 ├── requirements.txt          # Flask>=3.0
@@ -61,6 +61,11 @@ mydash/
 │                   ├── news.js     # News widget
 │                   ├── stocks.js   # Stock prices widget
 │                   └── crypto.js   # Crypto prices widget
+feedboard-venv/
+feedboard-data/
+├── configs/
+│   └── dashboard_v2.html
+├── logs/
 ```
 
 ## Routes
