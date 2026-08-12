@@ -148,11 +148,11 @@ User visits /dashboard/v2
 ## API Keys
 
 ### RSS2JSON (News)
-- Optional, loaded from `~/feedboard-data/configs/.env` as `RSS2JSON_API_KEY`
+- Optional, loaded from `feedboard-data/configs/.env` (repo sibling, outside the repo) as `RSS2JSON_API_KEY`
 - Passed to templates via `rss2json_api_key` variable
 
 ### V2 Auto-Fetch Interval
-- **REQUIRED** — loaded from `~/feedboard-data/configs/.env` as `V2_REFRESH_INTERVAL_SECONDS` (positive integer, seconds)
+- **REQUIRED** — loaded from `feedboard-data/configs/.env` (repo sibling, outside the repo) as `V2_REFRESH_INTERVAL_SECONDS` (positive integer, seconds)
 - The app raises a `RuntimeError` on startup if this key is missing, not an integer, or not positive
 - Sets the default refresh interval for V2 widgets (stocks, crypto); overridable per-widget via the widget settings modal
 - Passed to the V2 template as `window.V2_REFRESH_INTERVAL_SECONDS`

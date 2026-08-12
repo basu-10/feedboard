@@ -29,14 +29,23 @@ def _load_env_file(path):
     return values
 
 
+def _resolve_data_dir():
+    if os.environ.get("FEEDBOARD_DATA_DIR"):
+        return os.environ["FEEDBOARD_DATA_DIR"]
+    # Default to the repo's sibling `feedboard-data` (kept outside the repo),
+    # so configs/.env is the single source of truth beside the code.
+    repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sibling = os.path.join(repo_dir, "..", "feedboard-data")
+    if os.path.isdir(sibling):
+        return os.path.abspath(sibling)
+    home = os.environ.get("HOME") or os.path.expanduser("~")
+    return os.path.join(home, "feedboard-data")
+
+
 def _load_config_env():
-    data_dir = os.environ.get("FEEDBOARD_DATA_DIR")
-    if not data_dir:
-        home = os.environ.get("HOME") or os.path.expanduser("~")
-        data_dir = os.path.join(home, "feedboard-data")
-    return os.path.join(data_dir, "configs", ".env"), _load_env_file(
-        os.path.join(data_dir, "configs", ".env")
-    )
+    data_dir = _resolve_data_dir()
+    env_path = os.path.join(data_dir, "configs", ".env")
+    return env_path, _load_env_file(env_path)
 
 
 _CONFIG_ENV_PATH, _CONFIG_ENV = _load_config_env()
