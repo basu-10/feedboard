@@ -101,6 +101,8 @@ function startResize(e, widget, el, dir, minW, minH) {
   const startH = entry.h;
   const colUnit = (container.clientWidth - GAP * (COLUMNS - 1)) / COLUMNS + GAP;
   const rowUnit = ROW_HEIGHT + GAP;
+  const mainEl = container.closest('.v2-main');
+  const scrollTop = mainEl ? mainEl.scrollTop : 0;
 
   function onMove(ev) {
     const dx = ev.clientX - startX;
@@ -121,6 +123,7 @@ function startResize(e, widget, el, dir, minW, minH) {
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
     document.body.classList.remove('resizing');
+    if (mainEl) mainEl.scrollTop = scrollTop;
     persistLayout();
   }
 

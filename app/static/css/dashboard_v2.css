@@ -41,6 +41,35 @@
   padding: 1rem;
   overflow: auto;
   min-height: 0;
+  display: block;
+  align-items: stretch;
+  justify-content: initial;
+  max-width: none;
+  margin: 0;
+}
+
+/* Custom scrollbar */
+.v2-main::-webkit-scrollbar {
+  width: 10px;
+}
+
+.v2-main::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+.v2-main::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+
+.v2-main::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+.v2-main {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg);
 }
 
 .css-grid {
