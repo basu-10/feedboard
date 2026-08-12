@@ -41,7 +41,10 @@ export async function addWidget(type, id, settings) {
   const w = clamp(settings.w ?? def.defaultSize.w, minW, MAX_COLS);
   const h = clamp(settings.h ?? def.defaultSize.h, minH, MAX_ROWS);
 
-  const widget = await createWidget(type, id, layoutApi, settings, onWidgetSettings);
+  // Extract layout properties from settings - don't pass w/h to widget
+  const { w: _w, h: _h, ...widgetSettings } = settings;
+
+  const widget = await createWidget(type, id, layoutApi, widgetSettings, onWidgetSettings);
   const el = widget.buildElement();
   el.style.gridColumn = `span ${w}`;
   el.style.gridRow = `span ${h}`;

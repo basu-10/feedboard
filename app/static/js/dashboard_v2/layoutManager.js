@@ -17,6 +17,8 @@ export async function exportLayout() {
     const cleanSettings = settings ? { ...settings } : {};
     delete cleanSettings.id;
     delete cleanSettings.type;
+    delete cleanSettings.w;
+    delete cleanSettings.h;
     return {
       type: settings?.type || 'unknown',
       w: item.w,

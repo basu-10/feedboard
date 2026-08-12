@@ -32,7 +32,7 @@ export function openWidgetSettings(widget) {
   const schema = getWidgetSettingsSchema(widget.constructor.widgetType);
   form.innerHTML = renderFormFields(schema, widget.settings);
 
-  populateTimezoneOptions();
+  populateTimezoneOptions(widget.settings?.timezone);
 
   modal.classList.add('active');
 }
@@ -157,7 +157,7 @@ function renderArrayField(key, field, value) {
   return html;
 }
 
-function populateTimezoneOptions() {
+function populateTimezoneOptions(selectedValue) {
   const select = document.getElementById('setting-timezone');
   if (!select || select.dataset.populated) return;
 
@@ -171,6 +171,11 @@ function populateTimezoneOptions() {
     select.appendChild(opt);
   }
   select.dataset.populated = 'true';
+
+  // Set the selected value after populating options
+  if (selectedValue) {
+    select.value = selectedValue;
+  }
 }
 
 function closeModal() {
@@ -185,6 +190,10 @@ async function saveSettings() {
   const form = document.querySelector('#widgetSettingsModal .settings-form');
   const formData = new FormData(form);
   const settings = {};
+
+  // Get checkbox fields from schema to handle unchecked checkboxes
+  const schema = getWidgetSettingsSchema(currentWidget.constructor.widgetType);
+  const checkboxKeys = Object.keys(schema).filter(key => schema[key].type === 'checkbox');
 
   for (const [key, value] of formData.entries()) {
     if (key.endsWith('[]')) {
@@ -202,6 +211,15 @@ async function saveSettings() {
       }
     } else {
       settings[key] = value;
+    }
+  }
+
+  // Handle checkboxes: checked = "on", unchecked = missing from formData
+  for (const key of checkboxKeys) {
+    if (!(key in settings)) {
+      settings[key] = false;
+    } else if (settings[key] === 'on') {
+      settings[key] = true;
     }
   }
 
