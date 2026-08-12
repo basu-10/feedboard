@@ -123,6 +123,7 @@
   {% if rss2json_api_key %}
   <script>window.RSS2JSON_API_KEY = {{ rss2json_api_key | tojson }};</script>
   {% endif %}
+  <script src="{{ url_for('static', filename='js/vendor/chart.umd.js') }}"></script>
   <script type="module" src="{{ url_for('static', filename='js/dashboard_v2/index.js') }}"></script>
 </body>
 </html>

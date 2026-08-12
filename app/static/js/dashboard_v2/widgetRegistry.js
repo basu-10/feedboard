@@ -83,6 +83,12 @@ const WIDGET_REGISTRY = {
         itemType: 'text',
         default: ['AAPL', 'GOOGL', 'TSLA', 'MSFT', 'NVDA'],
       },
+      displayMode: {
+        type: 'radio',
+        label: 'Display Mode',
+        options: ['table', 'chart'],
+        default: 'table',
+      },
       refreshInterval: {
         type: 'number',
         label: 'Refresh Interval (seconds)',

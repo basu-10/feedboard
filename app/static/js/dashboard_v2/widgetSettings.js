@@ -29,8 +29,13 @@ export function openWidgetSettings(widget) {
 
   title.textContent = `${widget.constructor.widgetName} Settings`;
 
+  const defaults = typeof widget.constructor.getDefaultSettings === 'function'
+    ? widget.constructor.getDefaultSettings()
+    : {};
+  const effectiveSettings = { ...defaults, ...widget.settings };
+
   const schema = getWidgetSettingsSchema(widget.constructor.widgetType);
-  form.innerHTML = renderFormFields(schema, widget.settings);
+  form.innerHTML = renderFormFields(schema, effectiveSettings);
 
   populateTimezoneOptions(widget.settings?.timezone);
 
@@ -54,6 +59,7 @@ function getWidgetSettingsSchema(type) {
     },
     stocks: {
       symbols: { type: 'array', label: 'Stock Symbols', itemType: 'text' },
+      displayMode: { type: 'radio', label: 'Display Mode', options: ['table', 'chart'] },
       refreshInterval: { type: 'number', label: 'Refresh Interval (seconds)', min: 30, max: 300 },
     },
     crypto: {
