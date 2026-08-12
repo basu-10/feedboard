@@ -462,6 +462,97 @@
   text-align: center;
 }
 
+/* Weather Widget */
+.weather-current {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.weather-icon {
+  font-size: 3.25rem;
+  line-height: 1;
+}
+
+.weather-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.weather-temp {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.weather-desc {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.weather-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.weather-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding: 0 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.weather-forecast {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.weather-forecast-day {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.weather-forecast-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.weather-forecast-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.weather-forecast-temps {
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.weather-last-updated {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
 /* Widget Picker Modal */
 .widget-picker-grid {
   display: grid;

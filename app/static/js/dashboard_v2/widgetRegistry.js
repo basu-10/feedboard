@@ -109,6 +109,38 @@ const WIDGET_REGISTRY = {
       },
     },
   },
+  weather: {
+    name: 'Weather',
+    component: './widgets/weather.js',
+    defaultSize: { w: 4, h: 3 },
+    minSize: { w: 3, h: 3 },
+    settingsSchema: {
+      location: {
+        type: 'text',
+        label: 'Location',
+        placeholder: 'e.g. London, UK',
+        default: '',
+      },
+      unit: {
+        type: 'radio',
+        label: 'Temperature Unit',
+        options: ['celsius', 'fahrenheit'],
+        default: 'celsius',
+      },
+      showForecast: {
+        type: 'checkbox',
+        label: 'Show 5-day forecast',
+        default: true,
+      },
+      refreshInterval: {
+        type: 'number',
+        label: 'Refresh Interval (seconds)',
+        min: 300,
+        max: 3600,
+        default: DEFAULT_REFRESH_INTERVAL,
+      },
+    },
+  },
   crypto: {
     name: 'Crypto Prices',
     component: './widgets/crypto.js',

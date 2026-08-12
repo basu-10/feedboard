@@ -98,6 +98,7 @@ feedboard-data/
 | `news` | News | 6×4 | 4×3 | rss2json.com |
 | `stocks` | Stock Prices | 4×4 | 3×3 | Finnhub API |
 | `crypto` | Crypto Prices | 4×4 | 3×3 | CoinGecko API |
+| `weather` | Weather | 4×3 | 3×3 | Open-Meteo (geocoding + forecast) |
 
 ## V2 Architecture
 
@@ -204,7 +205,6 @@ Server runs on `http://0.0.0.0:7887`
 
 ## Known Issues / Future Improvements
 
-- [ ] Weather widget in V2 (currently only in V1 top bar)
 - [ ] Sparkline charts for stocks/crypto
 - [ ] WebSocket real-time updates
 - [ ] Multi-user/auth support

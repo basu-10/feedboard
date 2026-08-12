@@ -70,6 +70,12 @@ function getWidgetSettingsSchema(type) {
       chartMetric: { type: 'radio', label: 'Chart Value', options: ['price', 'changePct'] },
       refreshInterval: { type: 'number', label: 'Refresh Interval (seconds)', min: 60, max: 300 },
     },
+    weather: {
+      location: { type: 'text', label: 'Location' },
+      unit: { type: 'radio', label: 'Temperature Unit', options: ['celsius', 'fahrenheit'] },
+      showForecast: { type: 'checkbox', label: 'Show 5-day forecast' },
+      refreshInterval: { type: 'number', label: 'Refresh Interval (seconds)', min: 300, max: 3600 },
+    },
   };
   return schemas[type] || {};
 }
